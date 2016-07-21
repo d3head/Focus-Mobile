@@ -1,0 +1,15 @@
+.routines-screen {
+  ion-item-sliding {
+
+    //border-color: #ddd;
+
+    .item {
+      padding-left: 0;
+      border-left: 5px solid;
+
+      .item-inner {
+        padding-left: 11px;
+      }
+    }
+  }
+}

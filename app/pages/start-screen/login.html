@@ -1,0 +1,50 @@
+<ion-header>
+  <ion-navbar orange>
+    <button menuToggle>
+      <ion-icon name="menu">Назад</ion-icon>
+    </button>
+    <ion-title>Вход</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+  <form [ngFormModel]="authForm" (ngSubmit)="onSubmit(authForm.value)">
+      <ion-item [class.error]="!email.valid && email.touched">
+          <ion-label floating>E-Mail</ion-label>
+          <ion-input type="email" value="" [ngFormControl]="email"></ion-input>
+      </ion-item>
+      <div *ngIf="email.hasError('required') && email.touched"
+          class="error-box">* E-Mail не может быть пустым</div>
+      <div *ngIf="email.hasError('minlength') && email.touched"
+          class="error-box">* Минимальная длина E-Mail 5 символов!</div>
+      <ion-item [class.error]="!password.valid && password.touched">
+          <ion-label floating>Пароль</ion-label>
+          <ion-input type="password" value="" [ngFormControl]="password" ></ion-input>
+      </ion-item>
+      <div *ngIf="password.hasError('required') && password.touched"
+          class="error-box">* Пароль не может быть пустым</div>
+      <div *ngIf="password.hasError('minlength') && password.touched"
+          class="error-box">* Минимальная длина пароля 5 символов</div>
+      <br/><br/>
+      <div padding>
+        <button orange type="submit" class="custom-button" [disabled]="!authForm.valid" block>Войти</button>
+      </div>
+  </form>
+
+  <!--<ion-list>
+    <ion-item>
+      <ion-label floating>E-Mail</ion-label>
+      <ion-input type="email" value=""></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label floating>Пароль</ion-label>
+      <ion-input type="password"></ion-input>
+    </ion-item>
+
+  </ion-list>
+
+  <div padding>
+    <button block>Войти</button>
+  </div>-->
+</ion-content>

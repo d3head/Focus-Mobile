@@ -1,0 +1,119 @@
+// http://ionicframework.com/docs/v2/theming/
+
+
+// App Shared Imports
+// --------------------------------------------------
+// These are the imports which make up the design of this app.
+// By default each design mode includes these shared imports.
+// App Shared Sass variables belong in app.variables.scss.
+
+@import "../pages/hello-ionic/hello-ionic";
+
+@import "../pages/item-details/item-details";
+
+@import "../pages/start-screen/start-screen";
+
+@import "../pages/tasks/tasks";
+
+@import "../pages/goals/goals";
+
+@import "../pages/routines/routines";
+
+@import "../pages/news/news";
+
+@import "material-design-iconic-font";
+
+[empty-msg] {
+  opacity: 0.5;
+  text-align: center;
+}
+
+[half-opacity] {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+[no-border] {
+  .item-inner {
+    border: 0 !important;
+  }
+}
+
+[full-width] {
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+[chat-input] {
+
+  input {
+    background: #fff;
+    margin-top: 0;
+    margin-bottom: 0;
+    height: 30px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding-left: 5px;
+  }
+}
+
+.sidebar {
+  .avatar {
+    text-align: center;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    padding-top: 30px;
+    padding-bottom: 30px;
+
+    img {
+      border-radius: 50%;
+      width: 100px;
+      height: 100px;
+      display: inline-block;
+      border: 2px solid #fff;
+      box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.5);
+    }
+  }
+
+  .user {
+    font-size: 2.0rem;
+    margin-top: 15px;
+    color: #fff;
+  }
+
+  .zmdi {
+    font-size: 2.3rem;
+    color: lighten(#6C7A89, 35%);
+  }
+
+  ion-toolbar {
+    .toolbar-background {
+      border: 0;
+    }
+  }
+
+  ion-content {
+    background-color: #6C7A89;
+
+    ion-list {
+      .item {
+        background-color: #6C7A89;
+        color: #fff;
+
+        .item-inner {
+          border-color: lighten(#6C7A89, 10%);
+        }
+
+        &:last-child {
+          border-bottom: 0;
+        }
+
+        &:first-child {
+          border-top: 0;
+        }
+      }
+    }
+  }
+}

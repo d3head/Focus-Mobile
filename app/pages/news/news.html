@@ -1,0 +1,94 @@
+<ion-header>
+  <ion-navbar orange>
+    <button menuToggle>
+      <ion-icon name="menu"></ion-icon>
+    </button>
+
+    <ion-segment [(ngModel)]="displayMode" light>
+      <ion-segment-button value="0" (click)="getNewsSubscribers(today)">
+        Подписки
+      </ion-segment-button>
+      <ion-segment-button value="1" (click)="getNewsAll(today)">
+        Все
+      </ion-segment-button>
+    </ion-segment>
+
+    <ion-buttons end>
+      <button (click)="showPopover($event)">
+        <ion-icon name="more"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+
+  <!--<ion-refresher (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>-->
+
+  <div [ngSwitch]="displayMode">
+    <div *ngSwitchWhen="'0'">
+      Подписки
+    </div>
+
+    <div *ngSwitchWhen="'1'">
+      <div *ngIf="news">
+        <div *ngFor="let item of news.data; let i = index;">
+          <ion-card full-width>
+            <ion-item>
+              <ion-avatar item-left>
+                <img *ngIf="item.user.profile.avatar" src="//dev.gofocus.ru/img/170/{{item.user.profile.avatar}}">
+                <img *ngIf="!item.user.profile.avatar" src="images/No-Image-Icon_medium.png">
+              </ion-avatar>
+              <h2>{{item.user.profile.name}} {{item.user.profile.soname}}</h2>
+              <p>{{item.created_at | amTimeAgo}}</p>
+            </ion-item>
+
+            <ion-card-content (click)="openPost(item)">
+              <ion-card-title>
+                {{item.reply.day_conclusion}}
+              </ion-card-title>
+
+              <p>{{item.reply.description}}</p>
+            </ion-card-content>
+
+            <div class="slider">
+              <div *ngFor="let img of images[i]; let index = index;">
+                <div *ngIf="index === 0" class="slider-item first">
+                  <img src="http://dev.gofocus.ru/img-full/{{img}}">
+                </div>
+                <div *ngIf="index !== 0" class="slider-item">
+                  <img src="http://dev.gofocus.ru/img-full/{{img}}">
+                </div>
+              </div>
+            </div>
+
+            <ion-row>
+              <ion-col>
+                <button dark clear small (click)="likePost(item)">
+                  <ion-icon name="thumbs-up"></ion-icon>
+                  <div>{{item.likes.length || '0'}} нравится</div>
+                </button>
+              </ion-col>
+
+              <ion-col>
+                <button dark clear small (click)="openPost(item)">
+                  <ion-icon name="text"></ion-icon>
+                  <div>{{item.comments_count}} комментариев</div>
+                </button>
+              </ion-col>
+
+              <ion-col center text-center>
+                <button dark clear small (click)="openPost(item)">
+                  <div>Подробнее</div>
+                </button>
+              </ion-col>
+            </ion-row>
+
+          </ion-card>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

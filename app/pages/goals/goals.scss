@@ -1,0 +1,35 @@
+.goals-screen {
+  .heading {
+    padding-left: 0;
+    background: #f9f9f9;
+
+    .item-inner {
+      padding-left: 16px;
+    }
+  }
+
+  .target-complete {
+    //color: #87D37C;
+  }
+
+  .expandedGoal  {
+    visibility: hidden;
+    min-height: 0px;
+    height: 0;
+    opacity: 0;
+    transition: 0.2s all ease;
+
+    &.active {
+      visibility: visible;
+      min-height: 150px;
+      opacity: 1;
+      transition: 0.2s all ease;
+    }
+
+    &.day {
+      &.active {
+        min-height: 220px;
+      }
+    }
+  }
+}

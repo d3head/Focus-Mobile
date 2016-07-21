@@ -1,0 +1,68 @@
+<ion-header>
+  <ion-navbar orange>
+    <button menuToggle>
+      <ion-icon name="menu"></ion-icon>
+    </button>
+    <ion-title>Привычки</ion-title>
+
+    <ion-buttons end>
+      <button (click)="showPopover($event)">
+        <ion-icon name="more"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<button orange class="add-task-btn" fab (click)="addTaskScreen()">
+  <ion-icon name="add"></ion-icon>
+</button>
+
+<ion-content>
+  <ion-list *ngIf="routines">
+    <ion-list-header>
+      Мои привычки
+    </ion-list-header>
+
+    <div *ngFor="let item of routines.routine_reports">
+      <ion-item-sliding *ngIf="!item.done" #itemSliding>
+          <ion-item-options side="left" (ionSwipe)="updateRoutine(item, itemSliding)">
+            <button secondary expandable (click)="updateRoutine(item, itemSliding)">
+              <ion-icon name="checkmark"></ion-icon>
+            </button>
+          </ion-item-options>
+
+          <ion-item [style.border-left-color]="item.routine[0].color">
+            <h2 *ngIf="item.done" half-opacity>{{item.routine[0].name}}</h2>
+            <h2 *ngIf="!item.done">{{item.routine[0].name}}</h2>
+
+            <ion-note item-right>
+              {{ item.routine[0].countdone }} из {{ item.routine[0].count }}, {{ item.routine[0].percent }}%
+            </ion-note>
+          </ion-item>
+      </ion-item-sliding>
+    </div>
+
+    <ion-list-header>
+      Завершенные привычки
+    </ion-list-header>
+
+    <div *ngFor="let item of routines.routine_reports">
+      <ion-item-sliding *ngIf="item.done" #itemSliding>
+          <ion-item-options side="left" (ionSwipe)="updateRoutine(item, itemSliding)">
+            <button secondary expandable (click)="updateRoutine(item, itemSliding)">
+              <ion-icon name="checkmark"></ion-icon>
+            </button>
+          </ion-item-options>
+
+          <ion-item [style.border-left-color]="item.routine[0].color">
+            <h2 *ngIf="item.done" half-opacity>{{item.routine[0].name}}</h2>
+            <h2 *ngIf="!item.done">{{item.routine[0].name}}</h2>
+
+            <ion-note item-right>
+              {{ item.routine[0].countdone }} из {{ item.routine[0].count }}, {{ item.routine[0].percent }}%
+            </ion-note>
+          </ion-item>
+      </ion-item-sliding>
+    </div>
+  </ion-list>
+</ion-content>

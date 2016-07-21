@@ -1,0 +1,32 @@
+<ion-menu [content]="content" class="sidebar" sidebar-color>
+
+  <!--<ion-toolbar>
+    <!--<ion-title *ngIf="user.profile">
+      {{user.profile.name}} {{user.profile.soname}}
+    </ion-title>
+    <ion-searchbar placeholder="Поиск"></ion-searchbar>
+  </ion-toolbar>-->
+
+  <ion-toolbar sidebar-color>
+    <ion-card *ngIf="user.profile" class="avatar">
+      <img src="//dev.gofocus.ru/img/170/{{user.profile.avatar}}"/>
+
+      <div class="user">
+        {{user.profile.name}} {{user.profile.soname}}
+      </div>
+    </ion-card>
+  </ion-toolbar>
+
+  <ion-content sidebar>
+    <ion-list sidebar>
+      <button ion-item (click)="openPage('tasks')"><i class="zmdi zmdi-time-interval" item-left></i> Задачи</button>
+      <button ion-item (click)="openPage('goals')"><i class="zmdi zmdi-edit" item-left></i> Отчет</button>
+      <button ion-item (click)="openPage('routines')"><i class="zmdi zmdi-calendar-check" item-left></i> Привычки</button>
+      <button ion-item (click)="openPage('news')"><i class="zmdi zmdi-assignment" item-left></i> Новости</button>
+      <button ion-item (click)="openPage('settings')"><i class="zmdi zmdi-settings" item-left></i> Настройки</button>
+    </ion-list>
+  </ion-content>
+
+</ion-menu>
+
+<ion-nav [root]="rootPage" #content swipe-back-enabled="false"></ion-nav>

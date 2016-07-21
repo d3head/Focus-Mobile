@@ -1,0 +1,37 @@
+.view-post,
+.news-screen {
+  .slider {
+    float: left;
+    margin-bottom: 15px;
+
+    .slider-item {
+      width: 25%;
+      float: left;
+      padding-right: 5px;
+      max-height: 60px;
+      overflow-y: hidden;
+      margin-bottom: 5px;
+
+      &.first {
+        width: 100%;
+        max-height: 150px;
+        overflow: hidden;
+        padding-right: 0;
+
+        img {
+          margin-top: -25%;
+        }
+      }
+
+
+    }
+  }
+}
+
+.view-post {
+  ion-note {
+    font-size: 12px;
+    align-self: flex-start;
+    margin-top: 14px;
+  }
+}

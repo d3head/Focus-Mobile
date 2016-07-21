@@ -1,0 +1,117 @@
+<ion-header>
+  <ion-navbar orange>
+    <button menuToggle>
+      <ion-icon name="menu">Назад</ion-icon>
+    </button>
+    <ion-title>Запись</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+
+  <!--<ion-refresher (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>-->
+  <ion-card full-width>
+    <ion-item>
+      <ion-avatar item-left>
+        <img *ngIf="item.user.profile.avatar" src="//dev.gofocus.ru/img/170/{{item.user.profile.avatar}}">
+        <img *ngIf="!item.user.profile.avatar" src="images/No-Image-Icon_medium.png">
+      </ion-avatar>
+      <h2>{{item.user.profile.name}} {{item.user.profile.soname}}</h2>
+      <p>{{item.created_at | amTimeAgo}}</p>
+    </ion-item>
+
+    <ion-card-content>
+      <ion-card-title>
+        {{item.reply.day_conclusion}}
+      </ion-card-title>
+
+      <p>{{item.reply.description}}</p>
+    </ion-card-content>
+
+    <div class="slider" *ngIf="item.reply.images">
+      <div *ngFor="let img of item.reply.images; let index = index;">
+        <div *ngIf="index === 0" class="slider-item first">
+          <img src="http://dev.gofocus.ru/img-full/{{img}}">
+        </div>
+        <div *ngIf="index !== 0" class="slider-item">
+          <img src="http://dev.gofocus.ru/img-full/{{img}}">
+        </div>
+      </div>
+    </div>
+
+    <div *ngFor="let target of item.targets">
+      <ion-card-content>
+        <ion-card-title>
+          {{target.target.name}}
+        </ion-card-title>
+
+        <p>{{target.target.description}}</p>
+      </ion-card-content>
+
+      <div class="slider" *ngIf="target.images">
+        <div *ngFor="let img of target.images; let index = index;">
+          <div *ngIf="index === 0" class="slider-item first">
+            <img src="http://dev.gofocus.ru/img-full/{{img}}">
+          </div>
+          <div *ngIf="index !== 0" class="slider-item">
+            <img src="http://dev.gofocus.ru/img-full/{{img}}">
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <ion-row>
+      <ion-col>
+        <button dark clear small (click)="likePost(item)">
+          <ion-icon name="thumbs-up"></ion-icon>
+          <div>{{item.likes.length || '0'}} нравится</div>
+        </button>
+      </ion-col>
+
+      <ion-col>
+        <button dark clear small>
+          <ion-icon name="text"></ion-icon>
+          <div>{{item.comments_count}} комментариев</div>
+        </button>
+      </ion-col>
+
+      <ion-col center text-center>
+      </ion-col>
+    </ion-row>
+  </ion-card>
+
+  <ion-list *ngIf="comments.data">
+    <ion-list-header>
+      Комментарии
+    </ion-list-header>
+
+    <ion-item *ngFor="let item of comments.data; let i = index" (click)="showActions(item)">
+      <ion-avatar item-left>
+        <img *ngIf="item.user.profile.avatar" src="//dev.gofocus.ru/img/170/{{item.user.profile.avatar}}">
+        <img *ngIf="!item.user.profile.avatar" src="images/No-Image-Icon_medium.png">
+      </ion-avatar>
+      <h2>{{item.user.profile.name}} {{item.user.profile.soname}}</h2>
+      <p>{{item.body}}</p>
+      <ion-note item-right>{{item.created_at | amTimeAgo}}</ion-note>
+    </ion-item>
+  </ion-list>
+
+  <div *ngIf="!comments.data" empty-msg>
+    Комментариев нет.
+  </div>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar position="bottom">
+    <ion-input placeholder="Ваш комментарий" chat-input [(ngModel)]="commentField" type="text"></ion-input>
+
+    <ion-buttons end>
+      <button royal (click)="sendComment()">
+        Отправить
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

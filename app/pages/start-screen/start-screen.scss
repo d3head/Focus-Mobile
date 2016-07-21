@@ -1,0 +1,53 @@
+.start-screen {
+  background: #fff;
+
+  .slide {
+    font-size: 14px;
+
+    h2 {
+      font-size: 1.8rem;
+    }
+  }
+
+  .focus-logo {
+    position: absolute;
+    top: 100px;
+    left: 50%;
+    margin-left: -100px;
+    z-index: 2;
+    width: 200px;
+
+    .icon {
+        width: 200px;
+        height: 200px;
+
+        use.logo {
+          fill: #000 !important;
+        }
+      }
+  }
+
+  .start-buttons {
+    position: absolute;
+    bottom: 20px;
+    z-index: 2;
+    width: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
+
+    button {
+      width: 49%;
+      margin: 0;
+      padding: 0;
+      float: left;
+
+      &:first-child {
+        margin-right: 1%;
+      }
+    }
+  }
+
+  .swiper-container-horizontal > .swiper-pagination {
+    bottom: 100px;
+  }
+}
