@@ -45,6 +45,18 @@
   margin-right: 0;
 }
 
+[green-bg] {
+  .item {
+    background-color: #32db64;
+
+    color: #fff;
+
+    ion-note {
+      color: #fff;
+    }
+  }
+}
+
 [chat-input] {
 
   input {

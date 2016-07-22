@@ -28,39 +28,94 @@
   </ion-refresher>-->
 
   <div [ngSwitch]="displayMode">
-    <div *ngSwitchWhen="'0'">
-      Подписки
-    </div>
-
-    <div *ngSwitchWhen="'1'">
-      <div *ngIf="news">
+    <div *ngSwitchCase="'0'">
+      <div *ngIf="news.data">
         <div *ngFor="let item of news.data; let i = index;">
           <ion-card full-width>
             <ion-item>
               <ion-avatar item-left>
-                <img *ngIf="item.user.profile.avatar" src="//dev.gofocus.ru/img/170/{{item.user.profile.avatar}}">
+                <img *ngIf="item.user.profile.avatar" src="/api/img/170/{{item.user.profile.avatar}}">
                 <img *ngIf="!item.user.profile.avatar" src="images/No-Image-Icon_medium.png">
               </ion-avatar>
               <h2>{{item.user.profile.name}} {{item.user.profile.soname}}</h2>
               <p>{{item.created_at | amTimeAgo}}</p>
             </ion-item>
 
-            <ion-card-content (click)="openPost(item)">
-              <ion-card-title>
-                {{item.reply.day_conclusion}}
-              </ion-card-title>
+            <ion-segment padding [(ngModel)]="postMode[i]" orange>
+              <ion-segment-button value="0">
+                Отчет
+              </ion-segment-button>
+              <ion-segment-button value="1">
+                Задачи
+              </ion-segment-button>
 
-              <p>{{item.reply.description}}</p>
-            </ion-card-content>
+              <ion-segment-button value="2">
+                Привычки
+              </ion-segment-button>
+            </ion-segment>
 
-            <div class="slider">
-              <div *ngFor="let img of images[i]; let index = index;">
-                <div *ngIf="index === 0" class="slider-item first">
-                  <img src="http://dev.gofocus.ru/img-full/{{img}}">
+            <div [ngSwitch]="postMode[i]">
+              <div *ngSwitchCase="'0'">
+                <ion-card-content *ngIf="item.reply" (click)="openPost(item)">
+                  <ion-card-title *ngIf="item.reply.day_conclusion">
+                    {{item.reply.day_conclusion}}
+                  </ion-card-title>
+
+                  <p *ngIf="item.reply.description">{{item.reply.description}}</p>
+                </ion-card-content>
+
+                <div class="slider" *ngIf="images">
+                  <div *ngFor="let img of images[i]; let index = index;">
+                    <div *ngIf="index === 0" class="slider-item first">
+                      <img src="/api/img-full/{{img}}">
+                    </div>
+                    <div *ngIf="index !== 0" class="slider-item">
+                      <img src="/api/img-full/{{img}}">
+                    </div>
+                  </div>
                 </div>
-                <div *ngIf="index !== 0" class="slider-item">
-                  <img src="http://dev.gofocus.ru/img-full/{{img}}">
-                </div>
+
+                <ion-card-content *ngIf="item.post_state.is_dead_post">
+                  <ion-card-title>
+                    Игрок потерял фокус
+                  </ion-card-title>
+                </ion-card-content>
+              </div>
+
+              <div *ngSwitchCase="'1'">
+                <ion-card-content>
+                  <ion-card-title>
+                    Активные задачи
+                  </ion-card-title>
+
+                  <div *ngFor="let task of item.tasks; let tid = index;">
+                    <p *ngIf="!task.done">{{task.name}}</p>
+                  </div>
+
+                  <ion-card-title>
+                    Завершенные задачи
+                  </ion-card-title>
+
+                  <div *ngFor="let task of item.tasks; let tid = index;">
+                    <p *ngIf="task.done" half-opacity>{{task.name}}</p>
+                  </div>
+                </ion-card-content>
+              </div>
+
+              <div *ngSwitchCase="'2'">
+                <ion-card-content>
+                  <ion-list>
+                    <div *ngFor="let routine of item.routines; let rid = index;">
+                      <ion-item *ngIf="routine.done">
+                        <h2><ion-badge [style.background-color]="routine.routine[0].color">+1</ion-badge>{{routine.routine[0].name}}</h2>
+
+                        <ion-note item-right>
+                          {{ routine.routine[0].done_routine_reports.length }} из {{ routine.routine[0].count }}
+                        </ion-note>
+                      </ion-item>
+                    </div>
+                  </ion-list>
+                </ion-card-content>
               </div>
             </div>
 
@@ -72,14 +127,14 @@
                 </button>
               </ion-col>
 
-              <ion-col>
+              <ion-col *ngIf="!item.post_state.is_dead_post">
                 <button dark clear small (click)="openPost(item)">
                   <ion-icon name="text"></ion-icon>
                   <div>{{item.comments_count}} комментариев</div>
                 </button>
               </ion-col>
 
-              <ion-col center text-center>
+              <ion-col center text-center  *ngIf="!item.post_state.is_dead_post">
                 <button dark clear small (click)="openPost(item)">
                   <div>Подробнее</div>
                 </button>
@@ -88,6 +143,116 @@
 
           </ion-card>
         </div>
+      </div>
+
+      <div *ngIf="!news.data" padding empty-msg>
+        Новостей за эту дату нет.
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'1'">
+      <div *ngIf="news.data">
+        <div *ngFor="let item of news.data; let i = index;">
+          <ion-card full-width>
+            <ion-item>
+              <ion-avatar item-left>
+                <img *ngIf="item.user.profile.avatar" src="/api/img/170/{{item.user.profile.avatar}}">
+                <img *ngIf="!item.user.profile.avatar" src="images/No-Image-Icon_medium.png">
+              </ion-avatar>
+              <h2>{{item.user.profile.name}} {{item.user.profile.soname}}</h2>
+              <p>{{item.created_at | amTimeAgo}}</p>
+            </ion-item>
+
+            <ion-segment padding [(ngModel)]="postMode[i]" orange>
+              <ion-segment-button value="0">
+                Отчет
+              </ion-segment-button>
+              <ion-segment-button value="1">
+                Задачи
+              </ion-segment-button>
+
+              <ion-segment-button value="2">
+                Привычки
+              </ion-segment-button>
+            </ion-segment>
+
+            <div [ngSwitch]="postMode[i]">
+              <div *ngSwitchCase="'0'">
+                <ion-card-content *ngIf="item.reply" (click)="openPost(item)">
+                  <ion-card-title *ngIf="item.reply.day_conclusion">
+                    {{item.reply.day_conclusion}}
+                  </ion-card-title>
+
+                  <p *ngIf="item.reply.description">{{item.reply.description}}</p>
+                </ion-card-content>
+
+                <div class="slider" *ngIf="images">
+                  <div *ngFor="let img of images[i]; let index = index;">
+                    <div *ngIf="index === 0" class="slider-item first">
+                      <img src="/api/img-full/{{img}}">
+                    </div>
+                    <div *ngIf="index !== 0" class="slider-item">
+                      <img src="/api/img-full/{{img}}">
+                    </div>
+                  </div>
+                </div>
+
+                <ion-card-content *ngIf="item.post_state.is_dead_post">
+                  <ion-card-title>
+                    Игрок потерял фокус
+                  </ion-card-title>
+                </ion-card-content>
+              </div>
+
+              <div *ngSwitchCase="'1'">
+                <ion-card-content>
+                  <ion-card-title>
+                    Активные задачи
+                  </ion-card-title>
+
+                  <div *ngFor="let task of item.tasks; let tid = index;">
+                    <p *ngIf="!task.done">{{task.name}}</p>
+                  </div>
+
+                  <ion-card-title>
+                    Завершенные задачи
+                  </ion-card-title>
+
+                  <div *ngFor="let task of item.tasks; let tid = index;">
+                    <p *ngIf="task.done" half-opacity>{{task.name}}</p>
+                  </div>
+                </ion-card-content>
+              </div>
+            </div>
+
+            <ion-row>
+              <ion-col>
+                <button dark clear small (click)="likePost(item)">
+                  <ion-icon name="thumbs-up"></ion-icon>
+                  <div>{{item.likes.length || '0'}} нравится</div>
+                </button>
+              </ion-col>
+
+              <ion-col *ngIf="!item.post_state.is_dead_post">
+                <button dark clear small (click)="openPost(item)">
+                  <ion-icon name="text"></ion-icon>
+                  <div>{{item.comments_count}} комментариев</div>
+                </button>
+              </ion-col>
+
+              <ion-col center text-center  *ngIf="!item.post_state.is_dead_post">
+                <button dark clear small (click)="openPost(item)">
+                  <div>Подробнее</div>
+                </button>
+              </ion-col>
+            </ion-row>
+
+          </ion-card>
+        </div>
+      </div>
+
+      <div *ngIf="!news.data" padding empty-msg>
+        Новостей за эту дату нет.
       </div>
     </div>
   </div>

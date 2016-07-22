@@ -169,7 +169,7 @@ class MyModal {
     <ion-list radio-group class="popover-page">
       <ion-item>
         <ion-label>Дата</ion-label>
-        <ion-datetime displayFormat="YYYY-MM-DD" [(ngModel)]="today"></ion-datetime>
+        <ion-datetime displayFormat="YYYY-MM-DD" [(ngModel)]="today" (ngModelChange)="selectDate($event)"></ion-datetime>
       </ion-item>
     </ion-list>
   `,
@@ -179,39 +179,25 @@ class PopoverPage {
   contentEle: any;
   textEle: any;
   today: any;
-  fontFamily;
+  callback: any;
 
-  colors = {
-    'white': {
-      'bg': 'rgb(255, 255, 255)',
-      'fg': 'rgb(0, 0, 0)'
-    },
-    'tan': {
-      'bg': 'rgb(249, 241, 228)',
-      'fg': 'rgb(0, 0, 0)'
-    },
-    'grey': {
-      'bg': 'rgb(76, 75, 80)',
-      'fg': 'rgb(255, 255, 255)'
-    },
-    'black': {
-      'bg': 'rgb(0, 0, 0)',
-      'fg': 'rgb(255, 255, 255)'
-    },
-  };
-
-  constructor(private navParams: NavParams) {
+  constructor(
+    private navParams: NavParams,
+    private viewCtrl: ViewController
+  ) {
 
   }
 
   ngOnInit() {
     if (this.navParams.data) {
       this.today = this.navParams.data.today;
+      this.callback = this.navParams.get('cb');
     }
   }
 
-  dismiss() {
-    console.log(this.today);
+  selectDate($event) {
+    this.callback(this.today);
+    this.viewCtrl.dismiss();
   }
 }
 
@@ -296,13 +282,14 @@ export class TasksScreen {
   }
 
   showPopover(ev) {
-    let popover = Popover.create(PopoverPage, {today: this.today}, {enableBackdropDismiss: true});
-    popover.onDismiss((data: any[]) => {
-      console.log(data);
-      if (data) {
-        console.log(data);
+    let popover = Popover.create(PopoverPage, {
+      today: this.today,
+      cb: (data) => {
+        this.today = data;
+        this.getTasks(this.today);
       }
-    });
+    }, {enableBackdropDismiss: true});
+
     this.nav.present(popover, { ev: ev });
   }
 

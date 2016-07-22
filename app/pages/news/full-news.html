@@ -15,52 +15,107 @@
   <ion-card full-width>
     <ion-item>
       <ion-avatar item-left>
-        <img *ngIf="item.user.profile.avatar" src="//dev.gofocus.ru/img/170/{{item.user.profile.avatar}}">
+        <img *ngIf="item.user.profile.avatar" src="/api/img/170/{{item.user.profile.avatar}}">
         <img *ngIf="!item.user.profile.avatar" src="images/No-Image-Icon_medium.png">
       </ion-avatar>
       <h2>{{item.user.profile.name}} {{item.user.profile.soname}}</h2>
       <p>{{item.created_at | amTimeAgo}}</p>
     </ion-item>
 
-    <ion-card-content>
-      <ion-card-title>
-        {{item.reply.day_conclusion}}
-      </ion-card-title>
+    <ion-segment padding [(ngModel)]="postMode" orange>
+      <ion-segment-button value="0">
+        Отчет
+      </ion-segment-button>
+      <ion-segment-button value="1">
+        Задачи
+      </ion-segment-button>
 
-      <p>{{item.reply.description}}</p>
-    </ion-card-content>
+      <ion-segment-button value="2">
+        Привычки
+      </ion-segment-button>
+    </ion-segment>
 
-    <div class="slider" *ngIf="item.reply.images">
-      <div *ngFor="let img of item.reply.images; let index = index;">
-        <div *ngIf="index === 0" class="slider-item first">
-          <img src="http://dev.gofocus.ru/img-full/{{img}}">
-        </div>
-        <div *ngIf="index !== 0" class="slider-item">
-          <img src="http://dev.gofocus.ru/img-full/{{img}}">
-        </div>
-      </div>
-    </div>
+    <div [ngSwitch]="postMode">
+      <div *ngSwitchCase="'0'">
+        <ion-card-content *ngIf="item.reply">
+          <ion-card-title *ngIf="item.reply.day_conclusion">
+            {{item.reply.day_conclusion}}
+          </ion-card-title>
 
-    <div *ngFor="let target of item.targets">
-      <ion-card-content>
-        <ion-card-title>
-          {{target.target.name}}
-        </ion-card-title>
+          <p *ngIf="item.reply.description">{{item.reply.description}}</p>
+        </ion-card-content>
 
-        <p>{{target.target.description}}</p>
-      </ion-card-content>
-
-      <div class="slider" *ngIf="target.images">
-        <div *ngFor="let img of target.images; let index = index;">
-          <div *ngIf="index === 0" class="slider-item first">
-            <img src="http://dev.gofocus.ru/img-full/{{img}}">
-          </div>
-          <div *ngIf="index !== 0" class="slider-item">
-            <img src="http://dev.gofocus.ru/img-full/{{img}}">
+        <div *ngIf="item.reply">
+          <div class="slider" *ngIf="item.reply.images">
+            <div *ngFor="let img of item.reply.images; let index = index;">
+              <div *ngIf="index === 0" class="slider-item first">
+                <img src="/api/img-full/{{img}}">
+              </div>
+              <div *ngIf="index !== 0" class="slider-item">
+                <img src="/api/img-full/{{img}}">
+              </div>
+            </div>
           </div>
         </div>
+
+        <div *ngFor="let target of item.targets">
+          <ion-card-content>
+            <ion-card-title>
+              {{target.target.name}}
+            </ion-card-title>
+
+            <p>{{target.target.description}}</p>
+          </ion-card-content>
+
+          <div class="slider" *ngIf="target.images">
+            <div *ngFor="let img of target.images; let index = index;">
+              <div *ngIf="index === 0" class="slider-item first">
+                <img src="/api/img-full/{{img}}">
+              </div>
+              <div *ngIf="index !== 0" class="slider-item">
+                <img src="/api/img-full/{{img}}">
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
 
+      <div *ngSwitchCase="'1'">
+        <ion-card-content>
+          <ion-card-title>
+            Активные задачи
+          </ion-card-title>
+
+          <div *ngFor="let task of item.tasks; let tid = index;">
+            <p *ngIf="!task.done">{{task.name}}</p>
+          </div>
+
+          <ion-card-title>
+            Завершенные задачи
+          </ion-card-title>
+
+          <div *ngFor="let task of item.tasks; let tid = index;">
+            <p *ngIf="task.done" half-opacity>{{task.name}}</p>
+          </div>
+        </ion-card-content>
+      </div>
+
+      <div *ngSwitchCase="'2'">
+        <ion-card-content>
+          <ion-list>
+            <div *ngFor="let routine of item.routines; let rid = index;">
+              <ion-item *ngIf="routine.done">
+                <h2><ion-badge [style.background-color]="routine.routine[0].color">+1</ion-badge>{{routine.routine[0].name}}</h2>
+
+                <ion-note item-right>
+                  {{ routine.routine[0].done_routine_reports.length }} из {{ routine.routine[0].count }}
+                </ion-note>
+              </ion-item>
+            </div>
+          </ion-list>
+        </ion-card-content>
+      </div>
     </div>
 
     <ion-row>
@@ -90,7 +145,7 @@
 
     <ion-item *ngFor="let item of comments.data; let i = index" (click)="showActions(item)">
       <ion-avatar item-left>
-        <img *ngIf="item.user.profile.avatar" src="//dev.gofocus.ru/img/170/{{item.user.profile.avatar}}">
+        <img *ngIf="item.user.profile.avatar" src="/api/img/170/{{item.user.profile.avatar}}">
         <img *ngIf="!item.user.profile.avatar" src="images/No-Image-Icon_medium.png">
       </ion-avatar>
       <h2>{{item.user.profile.name}} {{item.user.profile.soname}}</h2>

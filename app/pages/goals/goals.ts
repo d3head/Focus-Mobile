@@ -6,6 +6,43 @@ import * as moment from 'moment';
 import 'moment/locale/ru';
 
 @Component({
+  template: `
+    <ion-list radio-group class="popover-page">
+      <ion-item>
+        <ion-label>Дата</ion-label>
+        <ion-datetime displayFormat="YYYY-MM-DD" [(ngModel)]="today" (ngModelChange)="selectDate($event)"></ion-datetime>
+      </ion-item>
+    </ion-list>
+  `,
+})
+class PopoverPage {
+  background: string;
+  contentEle: any;
+  textEle: any;
+  today: any;
+  callback: any;
+
+  constructor(
+    private navParams: NavParams,
+    private viewCtrl: ViewController
+  ) {
+
+  }
+
+  ngOnInit() {
+    if (this.navParams.data) {
+      this.today = this.navParams.data.today;
+      this.callback = this.navParams.get('cb');
+    }
+  }
+
+  selectDate($event) {
+    this.callback(this.today);
+    this.viewCtrl.dismiss();
+  }
+}
+
+@Component({
   templateUrl: 'build/pages/goals/goals.html',
   providers: [DataService]
 })
@@ -38,6 +75,19 @@ export class GoalsScreen {
     this.getGoals(this.today);
   }
 
+  showPopover(ev) {
+    let popover = Popover.create(PopoverPage, {
+      today: this.today,
+      cb: (data) => {
+        this.today = data;
+
+        this.getGoals(this.today);
+      }
+    }, {enableBackdropDismiss: true});
+
+    this.nav.present(popover, { ev: ev });
+  }
+
   getGoals(date) {
     ///core/api/v2/target-reports/get-by-date
     this.ds.get('core/api/v2/target-reports/get-by-date', {
@@ -46,6 +96,12 @@ export class GoalsScreen {
       .subscribe(data => {
         if(!data.error) {
           this.targets = data.result;
+
+          this.expandedGoal = [
+            {
+              visible: true
+            }
+          ];
 
           for (var item in this.targets.target_reports.target_reports) {
             this.expandedGoal.push({visible: false});

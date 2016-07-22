@@ -2,6 +2,7 @@ import {Injectable} from '@angular/core';
 import {HTTP_PROVIDERS, Http, Headers} from '@angular/http';
 import {API} from '../api';
 import 'rxjs/add/operator/map';
+import {Observable} from 'rxjs/Observable';
 import {Storage, LocalStorage} from 'ionic-angular';
 
 @Injectable()
@@ -9,6 +10,8 @@ export class DataService {
   http: Http;
   data: Object;
   local: any;
+  public getDateObserver: any;
+  public getDate: any;
 
   constructor(http: Http) {
     this.http = http;

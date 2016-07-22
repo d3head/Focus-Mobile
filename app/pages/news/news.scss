@@ -26,6 +26,20 @@
 
     }
   }
+
+  ion-list {
+    .item {
+      padding-left: 0;
+
+      .item-inner {
+        padding-left: 0;
+
+        ion-badge {
+          margin-right: 10px;
+        }
+      }
+    }
+  }
 }
 
 .view-post {
