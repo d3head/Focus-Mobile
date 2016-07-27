@@ -1,5 +1,5 @@
 import {Component, ViewChild, ElementRef} from '@angular/core';
-import {Slides, Nav, Popover, NavParams, Alert, Modal, ViewController} from 'ionic-angular';
+import {Slides, Nav, Popover, NavParams, MenuController, Alert, Modal, ViewController} from 'ionic-angular';
 import * as moment from 'moment';
 import 'moment/locale/ru';
 
@@ -50,26 +50,38 @@ import {DataService} from '../../services/DataService';
       </ion-item>
 
       <ion-item>
+        <ion-label>Длительность</ion-label>
+        <ion-datetime displayFormat="HH:mm" pickerFormat="HH mm" [(ngModel)]="addForm.estimate_time"></ion-datetime>
+      </ion-item>
+    </ion-list>
+
+    <ion-list>
+      <ion-item>
         <ion-label>В Backlog</ion-label>
         <ion-toggle [(ngModel)]="addForm.backlog"></ion-toggle>
       </ion-item>
 
       <ion-item *ngIf="!addForm.backlog">
         <ion-label>Дата</ion-label>
-        <ion-datetime displayFormat="MMM DD YYYY" [(ngModel)]="addForm.estimate_date"></ion-datetime>
+        <ion-datetime displayFormat="DD.MM.YYYY" [(ngModel)]="addForm.estimate_date"></ion-datetime>
       </ion-item>
+    </ion-list>
 
-      <ion-item>
-        <ion-label>Длительность</ion-label>
-        <ion-datetime displayFormat="HH:mm" pickerFormat="HH mm" [(ngModel)]="addForm.estimate_time"></ion-datetime>
-      </ion-item>
-
+    <ion-list>
       <ion-item>
         <ion-label>Обязательная</ion-label>
         <ion-toggle [(ngModel)]="addForm.important"></ion-toggle>
       </ion-item>
 
     </ion-list>
+
+    <button full (click)="createTask()" *ngIf="!_navParams.data.task">
+      Добавить
+    </button>
+
+    <button full (click)="updateTask()" *ngIf="_navParams.data.task">
+      Сохранить
+    </button>
   </ion-content>`
 })
 class MyModal {
@@ -79,6 +91,7 @@ class MyModal {
     private viewCtrl: ViewController,
     private ds: DataService,
     private nav: Nav,
+    private menu: MenuController,
     private _navParams: NavParams) {
       /*Date.prototype.tryHours = function(h) {
         this.setTime(this.getTime() - (h*60*60*1000));
@@ -100,9 +113,9 @@ class MyModal {
         let min: number = this._navParams.data.task.estimate_time - hours * 60;
         hours = (hours >= 10) ? hours : "0" + hours;
         this.addForm = {
-          estimate_date: this._navParams.data.task.estimate_date,
+          estimate_date: (this._navParams.data.task.estimate_date) ? this._navParams.data.task.estimate_date : moment(new Date()).format('YYYY-MM-DD'),
           estimate_time: hours + ':' + min,
-          backlog: this._navParams.data.task.backlog,
+          backlog: (this._navParams.data.task.estimate_date == null) ? true : false,
           name: this._navParams.data.task.name,
           important: (this._navParams.data.task.type == 1) ? true : false
         };
@@ -128,7 +141,7 @@ class MyModal {
             subTitle: data.error,
             buttons: ['OK']
           });
-
+          this.viewCtrl.dismiss();
           this.nav.present(alert);
         }
       });
@@ -153,7 +166,7 @@ class MyModal {
             subTitle: data.error,
             buttons: ['OK']
           });
-
+          this.viewCtrl.dismiss();
           this.nav.present(alert);
         }
       });
@@ -169,7 +182,7 @@ class MyModal {
     <ion-list radio-group class="popover-page">
       <ion-item>
         <ion-label>Дата</ion-label>
-        <ion-datetime displayFormat="YYYY-MM-DD" [(ngModel)]="today" (ngModelChange)="selectDate($event)"></ion-datetime>
+        <ion-datetime displayFormat="DD-MM-YYYY" [(ngModel)]="today" (ngModelChange)="selectDate($event)"></ion-datetime>
       </ion-item>
     </ion-list>
   `,
@@ -212,7 +225,9 @@ export class TasksScreen {
 
   allTasks: any;
   today: string;
+  trueToday: string;
   displayMode: any;
+  counters: any;
 
   constructor(
     private nav: Nav,
@@ -220,9 +235,10 @@ export class TasksScreen {
     private viewCtrl: ViewController
   ) {
     this.allTasks = {};
-    this.today = moment(new Date()).format('YYYY-MM-DD');
+    this.today = moment(new Date().setTime(new Date().getTime() - (3*60*60*1000))).format('YYYY-MM-DD');
+    this.trueToday = moment(new Date().setTime(new Date().getTime() - (3*60*60*1000))).format('YYYY-MM-DD');
     this.displayMode = '0';
-
+    this.counters = [];
     this.getTasks(this.today);
   }
 
@@ -261,6 +277,7 @@ export class TasksScreen {
           console.log(this.allTasks.all_tasks);
 
           //this.dateKeys = this.keys(this.allTasks.all_tasks);
+          this.countTasks();
         } else {
           let alert = Alert.create({
             title: 'Ошибка!',
@@ -272,6 +289,123 @@ export class TasksScreen {
         }
       });
   }
+
+  /*vm.getReqTaskInfoByDate = function(date) {
+        //if ($scope.all_user_tasks.length == 0) {
+        //    return {p: 0, t: 0, po: 0, to: 0};
+        //}
+
+        vm.prepareTaskArray(date.yyyymmdd());
+
+        var info = {
+            q_done: 0,
+            q_total: vm.all_user_tasks[date.yyyymmdd()][1] ? vm.all_user_tasks[date.yyyymmdd()][1].length : 0,
+            q_progress: 0,
+            q_estimate: 0,
+            o_done: 0,
+            o_total: vm.all_user_tasks[date.yyyymmdd()][2] ? vm.all_user_tasks[date.yyyymmdd()][2].length : 0,
+            o_progress: 0,
+            o_estimate: 0
+        };
+
+        if (!vm.all_user_tasks.hasOwnProperty(date.yyyymmdd())) {
+            vm.all_user_tasks[date.yyyymmdd()] = {1: [], 2: []};
+        }
+
+        angular.forEach(vm.all_user_tasks[date.yyyymmdd()][1], (function (info) {
+            return function (element, key) {if (element.done) {info.q_done++;} else {info.q_estimate+=parseInt(element.estimate_time);};};
+        })(info));
+        angular.forEach(vm.all_user_tasks[date.yyyymmdd()][2], (function (info) {
+            return function (element, key) {
+                if (element.done) {
+                    info.o_done++;
+                } else {
+                    info.o_estimate+=parseInt(element.estimate_time);
+                }
+            };
+        })(info));
+
+        if(info.q_total>0) {
+            info.q_progress = parseInt(info.q_done/info.q_total*100);
+        }
+        if(info.o_total>0) {
+            info.o_progress = parseInt(info.o_done/info.o_total*100);
+        }
+        return {p: info.q_progress, t:info.q_estimate, po: info.o_progress, to:info.o_estimate};
+    };*/
+
+  countTasks() {
+    this.counters.required_done = 0;
+    this.counters.required_not_done = 0;
+    this.counters.required_estimate = 0;
+    this.counters.optional_done = 0;
+    this.counters.optional_not_done = 0;
+    this.counters.optional_estimate = 0;
+    for(var i in this.allTasks.required_tasks) {
+        var item = this.allTasks.required_tasks[i];
+        if(item.done) {
+          this.counters.required_done++;
+        } else {
+          this.counters.required_estimate += parseInt(item.estimate_time);
+          this.counters.required_not_done++;
+        }
+    }
+
+    for(var i in this.allTasks.optional_tasks) {
+        var item = this.allTasks.optional_tasks[i];
+        if(item.done) {
+          this.counters.optional_done++;
+        } else {
+          this.counters.optional_estimate += parseInt(item.estimate_time);
+          console.log(this.counters.optional_estimate);
+          this.counters.optional_not_done++;
+        }
+    }
+  }
+
+  /*getReqTaskInfoByDate(date) {
+        //if ($scope.all_user_tasks.length == 0) {
+        //    return {p: 0, t: 0, po: 0, to: 0};
+        //}
+
+        this.prepareTaskArray(date.yyyymmdd());
+
+        var info = {
+            q_done: 0,
+            q_total: this.allTasks.all_tasks[date.yyyymmdd()][1] ? this.allTasks.all_tasks[date.yyyymmdd()][1].length : 0,
+            q_progress: 0,
+            q_estimate: 0,
+            o_done: 0,
+            o_total: this.allTasks.all_tasks[date.yyyymmdd()][2] ? this.allTasks.all_tasks[date.yyyymmdd()][2].length : 0,
+            o_progress: 0,
+            o_estimate: 0
+        };
+
+        if (!this.allTasks.all_taskshasOwnProperty(date.yyyymmdd())) {
+            this.allTasks.all_tasks[date.yyyymmdd()] = {1: [], 2: []};
+        }
+
+        this.allTasks.all_tasks[date.yyyymmdd()][1].forEach((function (info) {
+            return function (element, key) {if (element.done) {info.q_done++;} else {info.q_estimate+=parseInt(element.estimate_time);};};
+        })(info));
+        this.allTasks.all_tasks[date.yyyymmdd()][2].forEach((function (info) {
+            return function (element, key) {
+                if (element.done) {
+                    info.o_done++;
+                } else {
+                    info.o_estimate+=parseInt(element.estimate_time);
+                }
+            };
+        })(info));
+
+        if(info.q_total>0) {
+            info.q_progress = parseInt(info.q_done/info.q_total*100);
+        }
+        if(info.o_total>0) {
+            info.o_progress = parseInt(info.o_done/info.o_total*100);
+        }
+        return {p: info.q_progress, t:info.q_estimate, po: info.o_progress, to:info.o_estimate};
+    };*/
 
   keys() : Array<string> {
     return Object.keys(this.allTasks.all_tasks);
@@ -326,11 +460,17 @@ export class TasksScreen {
 
   doneTask(task, slidingItem) {
     task.done = !task.done;
+    if(task.done) {
+      this.allTasks.done_tasks++;
+    } else {
+      this.allTasks.done_tasks--;
+    }
     slidingItem.close();
     this.ds.post('core/api/v2/task/update-one', task)
       .subscribe(data => {
         if(!data.error) {
-          //this.getTasks(this.today);
+          this.getTasks(this.today);
+          //this.countTasks();
         } else {
           let alert = Alert.create({
             title: 'Ошибка!',

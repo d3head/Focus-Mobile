@@ -1,5 +1,5 @@
 import {Component, Input, Output, EventEmitter} from '@angular/core';
-import {Slides, Nav, Alert, MenuController} from 'ionic-angular';
+import {Slides, Nav, Alert, MenuController, Events} from 'ionic-angular';
 import {FORM_DIRECTIVES, FormBuilder,  ControlGroup, Validators, AbstractControl} from '@angular/common';
 import {FormValidator} from '../../validator/FormValidator';
 import {DataService} from '../../services/DataService';
@@ -25,7 +25,8 @@ export class LoginScreen {
     private ds: DataService,
     private as: AuthService,
     private nav: Nav,
-    private menu: MenuController
+    private menu: MenuController,
+    public events: Events
   ) {
       this.authForm = fb.group({
           'email': ['', Validators.compose([Validators.required, Validators.minLength(5)])],
@@ -43,7 +44,7 @@ export class LoginScreen {
           if(!data.error) {
             this.as.login(data);
             this.menu.enable(true);
-            userEvent.post(data);
+            this.events.publish('user:login', data);
             this.nav.setRoot(TasksScreen);
           } else {
             let alert = Alert.create({

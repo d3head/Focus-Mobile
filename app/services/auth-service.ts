@@ -24,6 +24,11 @@ export class AuthService {
     this.updateUserInfo.emit(this.user);
   }
 
+  logout() {
+    this.local.remove('token', null);
+    this.local.remove('user', null);
+  }
+
   getUser() {
     return this.local.get('user');
   }

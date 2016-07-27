@@ -58,7 +58,9 @@ export class DataService {
       search: this.jsonToQueryString(data)
     }
 
-    return this.http.get(`${API.API_ENDPOINT}/${url}`, options).map(res => res.json());
+    //return this.http.get(`${API.API_ENDPOINT}/${url}`, options).map(res => res.json());
+    //return this.http.get('http://api.gofocus.ru/' + url, options).map(res => res.json());
+    return this.http.get('/api/' + url, options).map(res => res.json());
   }
 
   post(url, data) {
@@ -70,7 +72,9 @@ export class DataService {
       withCredentials: true
     }
 
-    return this.http.post(`${API.API_ENDPOINT}/${url}`, data, options).map(res => res.json());
+    //return this.http.post(`${API.API_ENDPOINT}/${url}`, data, options).map(res => res.json());
+    //return this.http.post('http://api.gofocus.ru/' + url, data, options).map(res => res.json());
+    return this.http.post('/api/' + url, data, options).map(res => res.json());
   }
 
   /* Auth methods */

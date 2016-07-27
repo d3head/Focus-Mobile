@@ -19,10 +19,10 @@
 
 <ion-content>
   <ion-list *ngIf="targets">
-    <ion-item (click)="expandGoal(0)" class="heading">
-      Вывод дня
-
+    <ion-item tappable (click)="expandGoal(0)" class="heading">
       <ion-icon *ngIf="targets.reply.reply.day_conclusion && targets.reply.reply.description" name="checkmark-circle" green class="target-complete"></ion-icon>
+      Вывод дня
+      <ion-badge [style.background-color]="dayStatus.color" style="color:#000;font-weight: 400;">{{dayStatus.text}}</ion-badge>
 
       <ion-icon item-right name="arrow-down" *ngIf="!expandedGoal[0].visible"></ion-icon>
       <ion-icon item-right name="arrow-up" *ngIf="expandedGoal[0].visible"></ion-icon>
@@ -39,17 +39,26 @@
         <ion-textarea [(ngModel)]="targets.reply.reply.description"></ion-textarea>
       </ion-item>
 
+      <ion-item>
+        <ion-label>Продуктивно</ion-label>
+        <ion-checkbox primary [(ngModel)]="targets.reply.reply.work" (ngModelChange)="updateDayStatus()"></ion-checkbox>
+      </ion-item>
+
+      <ion-item>
+        <ion-label>Отдохнул</ion-label>
+        <ion-checkbox yellow [(ngModel)]="targets.reply.reply.relax" (ngModelChange)="updateDayStatus()"></ion-checkbox>
+      </ion-item>
+
       <ion-item no-border>
-        <button orange outline  small (click)="attachImages(0)"><ion-icon name="attach"></ion-icon>Прикрепить фотографию</button>
+        <button orange outline (click)="attachImages(0)"><ion-icon name="attach"></ion-icon>Прикрепить фотографию</button>
       </ion-item>
     </div>
 
     <div *ngIf="targets">
       <div *ngFor="let item of targets.target_reports.target_reports; let $index = index">
-        <ion-item (click)="expandGoal($index+1)" class="heading">
-          {{item.target.name}}
-
+        <ion-item tappable (click)="expandGoal($index+1)" class="heading">
           <ion-icon *ngIf="item.comment" name="checkmark-circle" green class="target-complete"></ion-icon>
+          {{item.target.name}}
 
           <ion-icon item-right name="arrow-down" *ngIf="!expandedGoal[$index+1].visible"></ion-icon>
           <ion-icon item-right name="arrow-up" *ngIf="expandedGoal[$index+1].visible"></ion-icon>
@@ -62,14 +71,16 @@
           </ion-item>
 
           <ion-item no-border>
-            <button orange outline  small><ion-icon name="attach"></ion-icon>Прикрепить фотографию</button>
+            <button orange outline><ion-icon name="attach"></ion-icon>Прикрепить фотографию</button>
           </ion-item>
         </div>
       </div>
     </div>
   </ion-list>
 
-  <button orange-second full (click)="saveReport()">Сохранить</button>
+  <div class="report-btns" padding>
+    <button orange outline (click)="saveReport()">Сохранить</button>
 
-  <button orange full (click)="publishReport()">Опубликовать</button>
+    <button orange (click)="publishReport()">Опубликовать</button>
+  </div>
 </ion-content>

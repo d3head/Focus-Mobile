@@ -1,0 +1,22 @@
+<ion-header>
+  <ion-navbar orange>
+    <button menuToggle>
+      <ion-icon name="menu"></ion-icon>
+    </button>
+    <ion-title>Настройки</ion-title>
+  </ion-navbar>
+</ion-header>
+
+
+<ion-content>
+  <ion-card *ngIf="user.profile" class="avatar">
+    <img src="http://api.gofocus.ru/img/170/{{user.profile.avatar}}">
+
+    <div class="user">
+      {{user.profile.name}} {{user.profile.soname}}
+    </div>
+  </ion-card>
+
+  <button danger full (click)="logout()">Выйти</button>
+
+</ion-content>

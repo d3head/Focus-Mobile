@@ -1,6 +1,6 @@
 import {Component, ViewChild, Input, Output, EventEmitter, enableProdMode} from '@angular/core';
-import {ionicBootstrap, Platform, MenuController, Nav} from 'ionic-angular';
-import {StatusBar} from 'ionic-native';
+import {ionicBootstrap, Platform, MenuController, Nav, Toast, Events} from 'ionic-angular';
+import {StatusBar, Network} from 'ionic-native';
 import {HelloIonicPage} from './pages/hello-ionic/hello-ionic';
 import {ListPage} from './pages/list/list';
 import {StartScreen} from './pages/start-screen/start-screen';
@@ -12,6 +12,7 @@ import {TasksScreen} from './pages/tasks/tasks';
 import {GoalsScreen} from './pages/goals/goals';
 import {RoutinesScreen} from './pages/routines/routines';
 import {NewsScreen} from './pages/news/news';
+import {SettingsScreen} from './pages/settings/settings';
 
 let userEvent = new SyncEvent();
 
@@ -33,7 +34,8 @@ class MyApp {
   constructor(
     private platform: Platform,
     private menu: MenuController,
-    private AuthService: AuthService
+    private AuthService: AuthService,
+    public events: Events
   ) {
     this.initializeApp();
 
@@ -42,14 +44,15 @@ class MyApp {
       tasks: TasksScreen,
       goals: GoalsScreen,
       routines: RoutinesScreen,
-      news: NewsScreen
+      news: NewsScreen,
+      settings: SettingsScreen
     };
 
     this.user = [];
 
-    userEvent.attach(function(s) {
-      console.log('event!!');
-      console.log(s);
+    this.events.subscribe('user:login', (data) => {
+      // userEventData is an array of parameters, so grab our first and only arg
+      this.user = data[0].user[0];
     });
 
     this.AuthService.isAuthorized().then(data => {
@@ -72,6 +75,23 @@ class MyApp {
       // Okay, so the platform is ready and our plugins are available.
       // Here you can do any higher level native things you might need.
       StatusBar.styleDefault();
+
+      let disconnectSubscription = Network.onDisconnect().subscribe(() => {
+        let toast = Toast.create({
+          message: 'Отсутсвует интернет-подключение',
+          position: 'top'
+        });
+
+        toast.onDismiss(() => {
+          console.log('Dismissed toast');
+        });
+
+        this.nav.present(toast);
+
+        let connectSubscription = Network.onConnect().subscribe(() => {
+          toast.dismiss();
+        });
+      });
     });
   }
 

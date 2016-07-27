@@ -50,6 +50,7 @@ export class GoalsScreen {
   targets: any;
   expandedGoal: any;
   today: string;
+  dayStatus: any;
 
   constructor(
     private ds: DataService,
@@ -62,6 +63,11 @@ export class GoalsScreen {
         visible: true
       }
     ];
+
+    this.dayStatus = {
+      color:'#EAEBEC',
+      text:'Обычный день'
+    };
 
     /*this.targets = {
       reply: {
@@ -86,6 +92,41 @@ export class GoalsScreen {
     }, {enableBackdropDismiss: true});
 
     this.nav.present(popover, { ev: ev });
+  }
+
+  updateDayStatus() {
+    this.dayStatus = {
+      color:'#EAEBEC',
+      text:'Обычный день'
+    };
+
+    if(this.targets.reply.reply.relax && !this.targets.reply.reply.work) {
+      this.dayStatus = {
+        color: '#FFFC99',
+        text: 'День отдыха'
+      };
+
+      console.log(1);
+    }
+
+    if(!this.targets.reply.reply.relax && this.targets.reply.reply.work) {
+      this.dayStatus = {
+        color: '#D5F2FD',
+        text: 'Продуктивный день'
+      };
+
+      console.log(2);
+    }
+
+    if(this.targets.reply.reply.relax && this.targets.reply.reply.work) {
+      this.dayStatus = {
+        color: '#84FBCE',
+        text: 'День победителя'
+      };
+
+      console.log(3);
+    }
+    console.log(this.dayStatus);
   }
 
   getGoals(date) {
@@ -182,7 +223,12 @@ export class GoalsScreen {
     this.ds.post('core/api/v2/target-reports/update-all', this.targets)
       .subscribe(data => {
         if(!data.error) {
-          console.log(data);
+          let alert = Alert.create({
+            title: 'Отчет был сохранен!',
+            buttons: ['OK']
+          });
+
+          this.nav.present(alert);
         } else {
           let alert = Alert.create({
             title: 'Ошибка!',

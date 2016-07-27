@@ -34,7 +34,7 @@
           <ion-card full-width>
             <ion-item>
               <ion-avatar item-left>
-                <img *ngIf="item.user.profile.avatar" src="/api/img/170/{{item.user.profile.avatar}}">
+                <img *ngIf="item.user.profile.avatar" src="http://api.gofocus.ru/img/170/{{item.user.profile.avatar}}">
                 <img *ngIf="!item.user.profile.avatar" src="images/No-Image-Icon_medium.png">
               </ion-avatar>
               <h2>{{item.user.profile.name}} {{item.user.profile.soname}}</h2>
@@ -56,7 +56,7 @@
 
             <div [ngSwitch]="postMode[i]">
               <div *ngSwitchCase="'0'">
-                <ion-card-content *ngIf="item.reply" (click)="openPost(item)">
+                <ion-card-content *ngIf="item.reply" (click)="openPost(item, false)">
                   <ion-card-title *ngIf="item.reply.day_conclusion">
                     {{item.reply.day_conclusion}}
                   </ion-card-title>
@@ -67,10 +67,10 @@
                 <div class="slider" *ngIf="images">
                   <div *ngFor="let img of images[i]; let index = index;">
                     <div *ngIf="index === 0" class="slider-item first">
-                      <img src="/api/img-full/{{img}}">
+                      <img src="http://api.gofocus.ru/img-full/{{img}}">
                     </div>
                     <div *ngIf="index !== 0" class="slider-item">
-                      <img src="/api/img-full/{{img}}">
+                      <img src="http://api.gofocus.ru/img-full/{{img}}">
                     </div>
                   </div>
                 </div>
@@ -97,7 +97,7 @@
                   </ion-card-title>
 
                   <div *ngFor="let task of item.tasks; let tid = index;">
-                    <p *ngIf="task.done" half-opacity>{{task.name}}</p>
+                    <p *ngIf="task.done"><ion-icon green name="checkmark-circle"></ion-icon> {{task.name}}</p>
                   </div>
                 </ion-card-content>
               </div>
@@ -122,21 +122,21 @@
             <ion-row>
               <ion-col>
                 <button dark clear small (click)="likePost(item)">
-                  <ion-icon name="thumbs-up"></ion-icon>
-                  <div>{{item.likes.length || '0'}} нравится</div>
+                  <ion-icon name="heart" [ngClass]="{'liked': item.user_liked}"></ion-icon>
+                  <div>{{item.likes.length || '0'}}</div>
                 </button>
               </ion-col>
 
-              <ion-col *ngIf="!item.post_state.is_dead_post">
-                <button dark clear small (click)="openPost(item)">
+              <ion-col text-center *ngIf="!item.post_state.is_dead_post">
+                <button dark clear small (click)="openPost(item, true)">
                   <ion-icon name="text"></ion-icon>
-                  <div>{{item.comments_count}} комментариев</div>
+                  <div>{{item.comments_count}}</div>
                 </button>
               </ion-col>
 
-              <ion-col center text-center  *ngIf="!item.post_state.is_dead_post">
-                <button dark clear small (click)="openPost(item)">
-                  <div>Подробнее</div>
+              <ion-col right text-right *ngIf="!item.post_state.is_dead_post">
+                <button dark clear small (click)="openPost(item, false)">
+                  <ion-icon name="arrow-forward"></ion-icon>
                 </button>
               </ion-col>
             </ion-row>
@@ -156,7 +156,7 @@
           <ion-card full-width>
             <ion-item>
               <ion-avatar item-left>
-                <img *ngIf="item.user.profile.avatar" src="/api/img/170/{{item.user.profile.avatar}}">
+                <img *ngIf="item.user.profile.avatar" src="http://api.gofocus.ru/img/170/{{item.user.profile.avatar}}">
                 <img *ngIf="!item.user.profile.avatar" src="images/No-Image-Icon_medium.png">
               </ion-avatar>
               <h2>{{item.user.profile.name}} {{item.user.profile.soname}}</h2>
@@ -178,7 +178,7 @@
 
             <div [ngSwitch]="postMode[i]">
               <div *ngSwitchCase="'0'">
-                <ion-card-content *ngIf="item.reply" (click)="openPost(item)">
+                <ion-card-content *ngIf="item.reply" (click)="openPost(item, false)">
                   <ion-card-title *ngIf="item.reply.day_conclusion">
                     {{item.reply.day_conclusion}}
                   </ion-card-title>
@@ -189,10 +189,10 @@
                 <div class="slider" *ngIf="images">
                   <div *ngFor="let img of images[i]; let index = index;">
                     <div *ngIf="index === 0" class="slider-item first">
-                      <img src="/api/img-full/{{img}}">
+                      <img src="http://api.gofocus.ru/img-full/{{img}}">
                     </div>
                     <div *ngIf="index !== 0" class="slider-item">
-                      <img src="/api/img-full/{{img}}">
+                      <img src="http://api.gofocus.ru/img-full/{{img}}">
                     </div>
                   </div>
                 </div>
@@ -219,7 +219,7 @@
                   </ion-card-title>
 
                   <div *ngFor="let task of item.tasks; let tid = index;">
-                    <p *ngIf="task.done" half-opacity>{{task.name}}</p>
+                    <p *ngIf="task.done"><ion-icon green name="checkmark-circle"></ion-icon> {{task.name}}</p>
                   </div>
                 </ion-card-content>
               </div>
@@ -228,21 +228,21 @@
             <ion-row>
               <ion-col>
                 <button dark clear small (click)="likePost(item)">
-                  <ion-icon name="thumbs-up"></ion-icon>
-                  <div>{{item.likes.length || '0'}} нравится</div>
+                  <ion-icon name="heart" [ngClass]="{'liked': item.user_liked}"></ion-icon>
+                  <div>{{item.likes.length || '0'}}</div>
                 </button>
               </ion-col>
 
-              <ion-col *ngIf="!item.post_state.is_dead_post">
-                <button dark clear small (click)="openPost(item)">
+              <ion-col text-center *ngIf="!item.post_state.is_dead_post">
+                <button dark clear small (click)="openPost(item, true)">
                   <ion-icon name="text"></ion-icon>
-                  <div>{{item.comments_count}} комментариев</div>
+                  <div>{{item.comments_count}}</div>
                 </button>
               </ion-col>
 
-              <ion-col center text-center  *ngIf="!item.post_state.is_dead_post">
-                <button dark clear small (click)="openPost(item)">
-                  <div>Подробнее</div>
+              <ion-col right text-right *ngIf="!item.post_state.is_dead_post">
+                <button dark clear small (click)="openPost(item, false)">
+                  <ion-icon name="arrow-forward"></ion-icon>
                 </button>
               </ion-col>
             </ion-row>

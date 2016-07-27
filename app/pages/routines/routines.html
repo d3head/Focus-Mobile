@@ -41,26 +41,32 @@
       </ion-item-sliding>
     </div>
 
-    <ion-list-header>
-      Завершенные привычки
-    </ion-list-header>
+    <div text-center padding *ngIf="!not_done_routines">
+      Молодец!<br> Все привычки на сегодня выполнены.
+    </div>
 
-    <div *ngFor="let item of routines.routine_reports">
-      <ion-item-sliding *ngIf="item.done" #itemSliding green-bg>
-          <ion-item-options side="left" (ionSwipe)="updateRoutine(item, itemSliding)">
-            <button secondary expandable (click)="updateRoutine(item, itemSliding)">
-              <ion-icon name="checkmark"></ion-icon>
-            </button>
-          </ion-item-options>
+    <div *ngIf="done_routines">
+      <ion-list-header>
+        Завершенные привычки
+      </ion-list-header>
 
-          <ion-item [style.border-left-color]="item.routine[0].color">
-            <h2>{{item.routine[0].name}}</h2>
+      <div *ngFor="let item of routines.routine_reports">
+        <ion-item-sliding *ngIf="item.done" #itemSliding green-bg>
+            <ion-item-options side="left" (ionSwipe)="updateRoutine(item, itemSliding)">
+              <button secondary expandable (click)="updateRoutine(item, itemSliding)">
+                <ion-icon name="checkmark"></ion-icon>
+              </button>
+            </ion-item-options>
 
-            <ion-note item-right>
-              {{ item.routine[0].countdone }} из {{ item.routine[0].count }}, {{ item.routine[0].percent }}%
-            </ion-note>
-          </ion-item>
-      </ion-item-sliding>
+            <ion-item [style.border-left-color]="item.routine[0].color">
+              <h2>{{item.routine[0].name}}</h2>
+
+              <ion-note item-right>
+                {{ item.routine[0].countdone }} из {{ item.routine[0].count }}, {{ item.routine[0].percent }}%
+              </ion-note>
+            </ion-item>
+        </ion-item-sliding>
+      </div>
     </div>
   </ion-list>
 </ion-content>

@@ -10,7 +10,7 @@ import 'moment/locale/ru';
     <ion-list radio-group class="popover-page">
       <ion-item>
         <ion-label>Дата</ion-label>
-        <ion-datetime displayFormat="YYYY-MM-DD" [(ngModel)]="today" (ngModelChange)="selectDate($event)"></ion-datetime>
+        <ion-datetime displayFormat="DD-MM-YYYY" [(ngModel)]="today" (ngModelChange)="selectDate($event)"></ion-datetime>
       </ion-item>
     </ion-list>
   `,
@@ -49,6 +49,8 @@ class PopoverPage {
 export class RoutinesScreen {
   routines: any;
   expandedGoal: any;
+  done_routines: any;
+  not_done_routines: any;
   today: string;
 
   constructor(
@@ -56,7 +58,8 @@ export class RoutinesScreen {
     private nav: Nav
   ) {
     this.today = moment(new Date().setTime(new Date().getTime() - (3*60*60*1000))).format('YYYY-MM-DD');
-
+    this.done_routines = 0;
+    this.not_done_routines = 0;
     this.getRoutines(this.today);
   }
 
@@ -88,6 +91,7 @@ export class RoutinesScreen {
           this.countRoutines();
 
           //this.routines.sort(this.compareWeight);
+          this.counters();
 
           console.log(this.routines);
         } else {
@@ -100,6 +104,18 @@ export class RoutinesScreen {
           this.nav.present(alert);
         }
       });
+  }
+
+  counters() {
+    this.done_routines = 0;
+    this.not_done_routines = 0;
+    this.routines.routine_reports.forEach((id, item) => {
+      if(id.done) {
+        this.done_routines++;
+      } else {
+        this.not_done_routines++;
+      }
+    });
   }
 
   countRoutines() {
@@ -148,7 +164,8 @@ export class RoutinesScreen {
       this.ds.post('core/api/v2/routine-reports/update-one', item)
         .subscribe(data => {
           if(!data.error) {
-            item = data.result;
+            this.getRoutines(this.today);
+            this.counters();
           } else {
             let alert = Alert.create({
               title: 'Ошибка!',
@@ -163,7 +180,8 @@ export class RoutinesScreen {
       this.ds.post('core/api/v2/routine-reports/create-one', item)
         .subscribe(data => {
           if(!data.error) {
-            item = data.result;
+            this.getRoutines(this.today);
+            this.counters();
           } else {
             let alert = Alert.create({
               title: 'Ошибка!',

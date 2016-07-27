@@ -5,10 +5,14 @@
     </button>
 
     <ion-segment [(ngModel)]="displayMode" light>
-      <ion-segment-button value="0">
-        Сегодня
+      <ion-segment-button value="0" small style="max-width: 90px !important;">
+        <span *ngIf="today == trueToday">Сегодня</span>
+        <span *ngIf="today != trueToday">{{today}}</span>
       </ion-segment-button>
-      <ion-segment-button value="1">
+      <ion-segment-button value="2" small>
+        Backlog
+      </ion-segment-button>
+      <ion-segment-button value="1" small>
         Все
       </ion-segment-button>
     </ion-segment>
@@ -34,40 +38,52 @@
   <div [ngSwitch]="displayMode">
     <div *ngSwitchWhen="'0'">
       <ion-list *ngIf="allTasks.all_tasks">
-        <ion-list-header>
-          Обязательные задачи
-        </ion-list-header>
+          <ion-list-header>
+            Обязательные задачи
+          </ion-list-header>
 
-        <div *ngIf="allTasks.all_tasks[today]">
-          <div *ngIf="allTasks.all_tasks[today]['1'].length > 0">
-            <div *ngFor="let item of allTasks.all_tasks[today]['1'] | orderBy: ['created_at']">
-              <ion-item-sliding *ngIf="!item.done" #slidingItem>
-                <ion-item-options side="left" (ionSwipe)="doneTask(item, slidingItem)">
-                  <button swipeable (click)="doneTask(item, slidingItem)" expandable secondary>
-                    <ion-icon name="checkmark"></ion-icon>
-                  </button>
-                </ion-item-options>
+          <ion-grid class="progress-bar">
+            <ion-row>
+              <ion-col width-30>Осталось {{counters.required_not_done}} из {{allTasks.required_tasks_count}} ({{formatedTaskTime(counters.required_estimate)}})</ion-col>
 
-                <ion-item (click)="editTask(item)">
-                  <h2>{{item.name}}</h2>
-                  <ion-note item-right>{{formatedTaskTime(item.estimate_time)}}</ion-note>
-                </ion-item>
+              <ion-col text-right width-20>{{counters.required_done / allTasks.required_tasks_count * 100 }}%</ion-col>
+            </ion-row>
 
-                <ion-item-options side="right" (ionSwipe)="sendTomorrow(item)">
-                  <button expandable swipeable light (click)="sendTomorrow(item)">
-                    <ion-icon name="return-right"></ion-icon>
-                  </button>
-                  <button danger (click)="removeTask(item)">
-                    <ion-icon name="close"></ion-icon>
-                  </button>
-                </ion-item-options>
-              </ion-item-sliding>
+            <ion-row>
+              <ion-col><div class="progress"><div class="bar" [ngStyle]="{'width': counters.required_done / allTasks.required_tasks_count * 100+'%'}"></div></div></ion-col>
+            </ion-row>
+          </ion-grid>
+
+          <div *ngIf="allTasks.all_tasks[today]">
+            <div *ngIf="allTasks.all_tasks[today]['1'].length > 0">
+              <div *ngFor="let item of allTasks.all_tasks[today]['1'] | orderBy: ['created_at']">
+                <ion-item-sliding *ngIf="!item.done" #slidingItem>
+                  <ion-item-options side="left" (ionSwipe)="doneTask(item, slidingItem)">
+                    <button swipeable (click)="doneTask(item, slidingItem)" expandable favorite>
+                      <ion-icon name="checkmark"></ion-icon>
+                    </button>
+                  </ion-item-options>
+
+                  <ion-item tappable (click)="editTask(item)">
+                    <h2>{{item.name}}</h2>
+                    <ion-note item-right>{{formatedTaskTime(item.estimate_time)}}</ion-note>
+                  </ion-item>
+
+                  <ion-item-options side="right" (ionSwipe)="sendTomorrow(item)">
+                    <button expandable swipeable light (click)="sendTomorrow(item)">
+                      <ion-icon name="return-right"></ion-icon>
+                    </button>
+                    <button danger (click)="removeTask(item)">
+                      <ion-icon name="close"></ion-icon>
+                    </button>
+                  </ion-item-options>
+                </ion-item-sliding>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div *ngIf="allTasks.all_tasks[today]">
-          <div padding empty-msg *ngIf="allTasks.all_tasks[today]['1'].length < 1">
+        <div *ngIf="counters.required_not_done < 1">
+          <div padding empty-msg>
             На этот день задач нет
           </div>
         </div>
@@ -78,18 +94,30 @@
           Дополнительные задачи
         </ion-list-header>
 
+        <ion-grid class="progress-bar">
+          <ion-row>
+            <ion-col width-30>Осталось {{counters.optional_not_done}} из {{allTasks.optional_tasks_count}} ({{formatedTaskTime(counters.optional_estimate)}})</ion-col>
+
+            <ion-col text-right width-20>{{counters.optional_done / allTasks.optional_tasks_count * 100 }}%</ion-col>
+          </ion-row>
+
+          <ion-row>
+            <ion-col><div class="progress"><div class="bar" [ngStyle]="{'width': counters.optional_done / allTasks.optional_tasks_count * 100+'%'}"></div></div></ion-col>
+          </ion-row>
+        </ion-grid>
+
 
         <div *ngIf="allTasks.all_tasks[today]">
           <div *ngIf="allTasks.all_tasks[today]['2'].length > 0">
             <div *ngFor="let item of allTasks.all_tasks[today]['2'] | orderBy: ['created_at']">
               <ion-item-sliding *ngIf="!item.done" #slidingItem>
                 <ion-item-options side="left" (ionSwipe)="doneTask(item, slidingItem)">
-                  <button (click)="doneTask(item, slidingItem)" swipeable expandable secondary>
+                  <button (click)="doneTask(item, slidingItem)" swipeable expandable favorite>
                     <ion-icon name="checkmark"></ion-icon>
                   </button>
                 </ion-item-options>
 
-                <ion-item (click)="editTask(item)">
+                <ion-item tappable (click)="editTask(item)">
                   <h2>{{item.name}}</h2>
                   <ion-note item-right>{{formatedTaskTime(item.estimate_time)}}</ion-note>
                 </ion-item>
@@ -107,50 +135,51 @@
           </div>
         </div>
 
-        <div *ngIf="allTasks.all_tasks[today]">
-          <div padding empty-msg *ngIf="allTasks.all_tasks[today]['2'].length < 1">
+        <div *ngIf="counters.optional_not_done < 1">
+          <div padding empty-msg>
             На этот день задач нет
           </div>
         </div>
 
         <br>
+        <div *ngIf="allTasks.done_tasks > 0">
+          <ion-list-header>
+            Завершенные задачи
+          </ion-list-header>
 
-        <ion-list-header>
-          Завершенные задачи
-        </ion-list-header>
+          <div *ngIf="allTasks.all_tasks[today]">
+            <div *ngIf="allTasks.all_tasks[today]['1'].length > 0">
+              <div *ngFor="let item of allTasks.all_tasks[today]['1'] | orderBy: ['created_at']">
+                <ion-item-sliding *ngIf="item.done" #slidingItem>
+                  <ion-item-options side="left" (ionSwipe)="doneTask(item, slidingItem)">
+                    <button (click)="doneTask(item, slidingItem)" swipeable expandable orange>
+                      <ion-icon name="undo"></ion-icon>
+                    </button>
+                  </ion-item-options>
 
-        <div *ngIf="allTasks.all_tasks[today]">
-          <div *ngIf="allTasks.all_tasks[today]['1'].length > 0">
-            <div *ngFor="let item of allTasks.all_tasks[today]['1'] | orderBy: ['created_at']">
-              <ion-item-sliding *ngIf="item.done" #slidingItem>
-                <ion-item-options side="left" (ionSwipe)="doneTask(item, slidingItem)">
-                  <button (click)="doneTask(item, slidingItem)" swipeable expandable secondary>
-                    <ion-icon name="checkmark"></ion-icon>
-                  </button>
-                </ion-item-options>
-
-                <ion-item>
-                  <h2 half-opacity>{{item.name}}</h2>
-                  <ion-note item-right>{{formatedTaskTime(item.estimate_time)}}</ion-note>
-                </ion-item>
-              </ion-item-sliding>
+                  <ion-item>
+                    <h2 half-opacity>{{item.name}}</h2>
+                    <ion-note item-right>{{formatedTaskTime(item.estimate_time)}}</ion-note>
+                  </ion-item>
+                </ion-item-sliding>
+              </div>
             </div>
-          </div>
 
-          <div *ngIf="allTasks.all_tasks[today]['2'].length > 0">
-            <div *ngFor="let item of allTasks.all_tasks[today]['2'] | orderBy: ['created_at']">
-              <ion-item-sliding *ngIf="item.done" #slidingItem>
-                <ion-item-options side="left" (ionSwipe)="doneTask(item, slidingItem)">
-                  <button (click)="doneTask(item, slidingItem)" swipeable expandable secondary>
-                    <ion-icon name="checkmark"></ion-icon>
-                  </button>
-                </ion-item-options>
+            <div *ngIf="allTasks.all_tasks[today]['2'].length > 0">
+              <div *ngFor="let item of allTasks.all_tasks[today]['2'] | orderBy: ['created_at']">
+                <ion-item-sliding *ngIf="item.done" #slidingItem>
+                  <ion-item-options side="left" (ionSwipe)="doneTask(item, slidingItem)">
+                    <button (click)="doneTask(item, slidingItem)" swipeable expandable orange>
+                      <ion-icon name="undo"></ion-icon>
+                    </button>
+                  </ion-item-options>
 
-                <ion-item>
-                  <h2 half-opacity>{{item.name}}</h2>
-                  <ion-note item-right>{{formatedTaskTime(item.estimate_time)}}</ion-note>
-                </ion-item>
-              </ion-item-sliding>
+                  <ion-item>
+                    <h2 half-opacity>{{item.name}}</h2>
+                    <ion-note item-right>{{formatedTaskTime(item.estimate_time)}}</ion-note>
+                  </ion-item>
+                </ion-item-sliding>
+              </div>
             </div>
           </div>
         </div>
@@ -169,12 +198,12 @@
               <div>
                 <ion-item-sliding *ngFor="let item of allTasks.all_tasks[key]['1'] | orderBy: ['created_at']" #slidingItem>
                   <ion-item-options side="left" (ionSwipe)="doneTask(item, slidingItem)">
-                    <button (click)="doneTask(item, slidingItem)" swipeable expandable secondary>
+                    <button (click)="doneTask(item, slidingItem)" swipeable expandable favorite>
                       <ion-icon name="checkmark"></ion-icon>
                     </button>
                   </ion-item-options>
 
-                  <ion-item (click)="editTask(item)">
+                  <ion-item tappable (click)="editTask(item)">
                     <h2 *ngIf="item.done" half-opacity>{{item.name}}</h2>
                     <h2 *ngIf="!item.done">{{item.name}}</h2>
                     <ion-note item-right>{{formatedTaskTime(item.estimate_time)}}</ion-note>
@@ -196,12 +225,12 @@
               <div>
                 <ion-item-sliding *ngFor="let item of allTasks.all_tasks[key]['2'] | orderBy: ['created_at']" #slidingItem>
                   <ion-item-options side="left" (ionSwipe)="doneTask(item, slidingItem)">
-                    <button (click)="doneTask(item, slidingItem)" swipeable expandable secondary>
+                    <button (click)="doneTask(item, slidingItem)" swipeable expandable favorite>
                       <ion-icon name="checkmark"></ion-icon>
                     </button>
                   </ion-item-options>
 
-                  <ion-item (click)="editTask(item)">
+                  <ion-item tappable (click)="editTask(item)">
                     <h2 *ngIf="item.done" half-opacity>{{item.name}}</h2>
                     <h2 *ngIf="!item.done">{{item.name}}</h2>
                     <ion-note item-right>{{formatedTaskTime(item.estimate_time)}}</ion-note>
@@ -222,6 +251,39 @@
           </div>
         </div>
       </ion-list>
+    </div>
+
+    <div *ngSwitchWhen="'2'">
+      <ion-list *ngIf="allTasks.backlog_tasks">
+        <div *ngFor="let item of allTasks.backlog_tasks | orderBy: ['created_at']">
+          <ion-item-sliding #slidingItem>
+            <ion-item-options side="left" (ionSwipe)="doneTask(item, slidingItem)">
+              <button swipeable (click)="doneTask(item, slidingItem)" expandable favorite>
+                <ion-icon name="checkmark"></ion-icon>
+              </button>
+            </ion-item-options>
+
+            <ion-item tappable (click)="editTask(item)">
+              <h2 *ngIf="item.done" half-opacity>{{item.name}}</h2>
+              <h2 *ngIf="!item.done">{{item.name}}</h2>
+              <ion-note item-right>{{formatedTaskTime(item.estimate_time)}}</ion-note>
+            </ion-item>
+
+            <ion-item-options side="right" (ionSwipe)="sendTomorrow(item)">
+              <button expandable swipeable light (click)="sendTomorrow(item)">
+                <ion-icon name="return-right"></ion-icon>
+              </button>
+              <button danger (click)="removeTask(item)">
+                <ion-icon name="close"></ion-icon>
+              </button>
+            </ion-item-options>
+          </ion-item-sliding>
+        </div>
+      </ion-list>
+
+      <div padding empty-msg *ngIf="allTasks.backlog_tasks < 1">
+        На этот день задач нет
+      </div>
     </div>
   </div>
 

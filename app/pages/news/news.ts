@@ -25,7 +25,7 @@ export class ViewPost {
     private _navParams: NavParams
   ) {
     console.log(this);
-    this.item = this._navParams.data;
+    this.item = this._navParams.data.item;
     this.comments = [];
     this.getComments(this.item.id);
     this.postMode = '0';
@@ -91,6 +91,11 @@ export class ViewPost {
 
         if(!data.error) {
           this.comments = data.result;
+
+          setTimeout(() => {
+            this.content.scrollToBottom(200);
+
+          }, 100);
         } else {
           let alert = Alert.create({
             title: 'Ошибка!',
@@ -132,7 +137,7 @@ export class ViewPost {
     <ion-list radio-group class="popover-page">
       <ion-item>
         <ion-label>Дата</ion-label>
-        <ion-datetime displayFormat="YYYY-MM-DD" [(ngModel)]="today" (ngModelChange)="selectDate($event)"></ion-datetime>
+        <ion-datetime displayFormat="DD-MM-YYYY" [(ngModel)]="today" (ngModelChange)="selectDate($event)"></ion-datetime>
       </ion-item>
     </ion-list>
   `,
@@ -342,8 +347,8 @@ export class NewsScreen {
       });
   }
 
-  openPost(item) {
-    this.nav.push(ViewPost, item);
+  openPost(item, comment) {
+    this.nav.push(ViewPost, {item: item, comment: comment});
   }
 
   likePost(item) {

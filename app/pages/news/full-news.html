@@ -15,7 +15,7 @@
   <ion-card full-width>
     <ion-item>
       <ion-avatar item-left>
-        <img *ngIf="item.user.profile.avatar" src="/api/img/170/{{item.user.profile.avatar}}">
+        <img *ngIf="item.user.profile.avatar" src="http://api.gofocus.ru/img/170/{{item.user.profile.avatar}}">
         <img *ngIf="!item.user.profile.avatar" src="images/No-Image-Icon_medium.png">
       </ion-avatar>
       <h2>{{item.user.profile.name}} {{item.user.profile.soname}}</h2>
@@ -49,10 +49,10 @@
           <div class="slider" *ngIf="item.reply.images">
             <div *ngFor="let img of item.reply.images; let index = index;">
               <div *ngIf="index === 0" class="slider-item first">
-                <img src="/api/img-full/{{img}}">
+                <img src="http://api.gofocus.ru/img-full/{{img}}">
               </div>
               <div *ngIf="index !== 0" class="slider-item">
-                <img src="/api/img-full/{{img}}">
+                <img src="http://api.gofocus.ru/img-full/{{img}}">
               </div>
             </div>
           </div>
@@ -70,10 +70,10 @@
           <div class="slider" *ngIf="target.images">
             <div *ngFor="let img of target.images; let index = index;">
               <div *ngIf="index === 0" class="slider-item first">
-                <img src="/api/img-full/{{img}}">
+                <img src="http://api.gofocus.ru/img-full/{{img}}">
               </div>
               <div *ngIf="index !== 0" class="slider-item">
-                <img src="/api/img-full/{{img}}">
+                <img src="http://api.gofocus.ru/img-full/{{img}}">
               </div>
             </div>
           </div>
@@ -96,7 +96,7 @@
           </ion-card-title>
 
           <div *ngFor="let task of item.tasks; let tid = index;">
-            <p *ngIf="task.done" half-opacity>{{task.name}}</p>
+            <p *ngIf="task.done"><ion-icon green name="checkmark-circle"></ion-icon> {{task.name}}</p>
           </div>
         </ion-card-content>
       </div>
@@ -121,15 +121,15 @@
     <ion-row>
       <ion-col>
         <button dark clear small (click)="likePost(item)">
-          <ion-icon name="thumbs-up"></ion-icon>
-          <div>{{item.likes.length || '0'}} нравится</div>
+          <ion-icon name="heart" [ngClass]="{'liked': item.user_liked}"></ion-icon>
+          <div>{{item.likes.length || '0'}}</div>
         </button>
       </ion-col>
 
       <ion-col>
         <button dark clear small>
           <ion-icon name="text"></ion-icon>
-          <div>{{item.comments_count}} комментариев</div>
+          <div>{{item.comments_count}}</div>
         </button>
       </ion-col>
 
@@ -145,7 +145,7 @@
 
     <ion-item *ngFor="let item of comments.data; let i = index" (click)="showActions(item)">
       <ion-avatar item-left>
-        <img *ngIf="item.user.profile.avatar" src="/api/img/170/{{item.user.profile.avatar}}">
+        <img *ngIf="item.user.profile.avatar" src="http://api.gofocus.ru/img/170/{{item.user.profile.avatar}}">
         <img *ngIf="!item.user.profile.avatar" src="images/No-Image-Icon_medium.png">
       </ion-avatar>
       <h2>{{item.user.profile.name}} {{item.user.profile.soname}}</h2>

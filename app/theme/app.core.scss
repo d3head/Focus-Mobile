@@ -21,6 +21,8 @@
 
 @import "../pages/news/news";
 
+@import "../pages/settings/settings";
+
 @import "material-design-iconic-font";
 
 [empty-msg] {
@@ -45,6 +47,10 @@
   margin-right: 0;
 }
 
+[small] {
+  max-width: 70px !important;
+}
+
 [green-bg] {
   .item {
     background-color: #32db64;
@@ -53,6 +59,32 @@
 
     ion-note {
       color: #fff;
+    }
+  }
+}
+
+.progress-bar {
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 0;
+
+  ion-col {
+    font-size: 1.2rem;
+    opacity: 0.8;
+    padding-top: 0;
+  }
+  
+  .progress {
+    background-color: #B9B9B9;
+    width: 100%;
+    height: 5px;
+    border-radius: 3px;
+
+    .bar {
+      background: #87D37C;
+      height: 100%;
+      border-radius: 3px;
+      transition: 0.5s ease;
     }
   }
 }
