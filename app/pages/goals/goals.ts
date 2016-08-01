@@ -1,9 +1,10 @@
-import {Component, Input, Output, EventEmitter} from '@angular/core';
+import {Component, Input, Output, EventEmitter, ViewChild, ElementRef} from '@angular/core';
 import {DataService} from '../../services/DataService';
-import {Slides, Nav, Popover, NavParams, Alert, Modal, ViewController} from 'ionic-angular';
+import {Slides, Nav, Content, Platform, Popover, NavParams, Alert, Modal, Loading, ViewController, ActionSheet, App} from 'ionic-angular';
 import {Camera} from 'ionic-native';
 import * as moment from 'moment';
 import 'moment/locale/ru';
+import {Observable} from "rxjs/Rx";
 
 @Component({
   template: `
@@ -51,18 +52,31 @@ export class GoalsScreen {
   expandedGoal: any;
   today: string;
   dayStatus: any;
+  watch: any;
+  disableSend: any;
+  progress: any;
+  photos: any;
+  @ViewChild(Content) content: Content;
+  private app: App = null;
 
   constructor(
     private ds: DataService,
-    private nav: Nav
+    private platform: Platform,
+    private nav: Nav,
+    app: App
   ) {
     this.today = moment(new Date().setTime(new Date().getTime() - (3*60*60*1000))).format('YYYY-MM-DD');
-
+    this.disableSend = false;
+    this.photos = {0: []};
     this.expandedGoal = [
       {
         visible: true
       }
     ];
+
+    this.app = app;
+
+    this.progress = 0;
 
     this.dayStatus = {
       color:'#EAEBEC',
@@ -77,8 +91,62 @@ export class GoalsScreen {
         target_reports: {}
       }
     };*/
-
     this.getGoals(this.today);
+
+
+  }
+
+  ngAfterViewInit() {
+   // Here 'my-content' is the ID of my ion-content
+   /*this.content = this.app.getComponent('goals-content');
+   //this.content.onScrollEnd(this.onPageScroll);
+   this.content.addEventListener("scroll", () => {
+        this.onPageScroll();
+    });
+   //console.log(this.content.getScrollTop());
+   console.log(this);*/
+   /*this.scrollerHandle = this.element.nativeElement.children[0];
+   if(this.app.isScrolling()) {
+     console.log('true');
+   }*/
+   /*document.querySelector('body').addEventListener('scroll', function(e) {
+     console.log('scroll fire');
+     if(document.querySelector('.report-btns').getBoundingClientRect().bottom <= 680) {
+       console.log('pam a');
+       document.querySelector('.goals-bar').classList.remove('fixed');
+     } else {
+       document.querySelector('.goals-bar').classList.add('fixed');
+     }
+   });*/
+  }
+
+  onPageScroll($event) {
+    console.log($event);
+  }
+
+  calcProgress() {
+    this.disableSend = false;
+    let total = this.targets.target_reports.target_reports.length + 2;
+    let done = 0;
+
+    if(this.targets.reply.reply.day_conclusion) {
+      done += 1;
+    }
+
+    if(this.targets.reply.reply.description) {
+      done += 1;
+    }
+
+
+    this.targets.target_reports.target_reports.forEach((item, id) => {
+      if(!item.comment) {
+        this.disableSend = true;
+      } else {
+        done += 1;
+      }
+    });
+
+    this.progress = parseInt((done / total * 100).toString());
   }
 
   showPopover(ev) {
@@ -129,6 +197,10 @@ export class GoalsScreen {
     console.log(this.dayStatus);
   }
 
+  parseInt(val) {
+    return parseInt(val);
+  }
+
   getGoals(date) {
     ///core/api/v2/target-reports/get-by-date
     this.ds.get('core/api/v2/target-reports/get-by-date', {
@@ -143,12 +215,13 @@ export class GoalsScreen {
               visible: true
             }
           ];
-
+          this.photos[0] = this.targets.reply.reply.images || [];
           for (var item in this.targets.target_reports.target_reports) {
             this.expandedGoal.push({visible: false});
+            this.photos[parseInt(item)+1] = this.targets.target_reports.target_reports[item].images || [];
           }
 
-          console.log(this.expandedGoal);
+          this.calcProgress();
         } else {
           let alert = Alert.create({
             title: 'Ошибка!',
@@ -161,65 +234,132 @@ export class GoalsScreen {
       });
   }
 
-  attachImages(index) {
-    if(index === 0) {
+  photosAction(target, index) {
+    let actionSheet = ActionSheet.create({
+      buttons: [
+        {
+          text: 'Показать',
+          handler: () => {
+            //console.log(item);
+          }
+        }, {
+          text: 'Удалить',
+          role: 'destructive',
+          handler: () => {
+            this.photos[0].splice(index, 1);
+          }
+        },{
+          text: 'Отмена',
+          role: 'cancel'
+        }
+      ]
+    });
 
-    }
-
-  /*  let options = {
-      destinationType: 1,
-      saveToPhotoAlbum: true
-    };*/
-
-    console.log('camera');
-
-    /*Camera.getPicture(options).then((imageData) => {
-        // imageData is either a base64 encoded string or a file URI
-        // If it's base64:
-        let base64Image = "data:image/jpeg;base64," + imageData;
-
-        console.log(base64Image);
-    }, (err) => {
-    });*/
-      let options = {
-        quality: 80,
-        destinationType: Camera.DestinationType.DATA_URL,
-        sourceType: Camera.PictureSourceType.CAMERA,
-        allowEdit: false,
-        encodingType: Camera.EncodingType.JPEG,
-        saveToPhotoAlbum: false
-      };
-      // https://github.com/apache/cordova-plugin-camera#module_camera.getPicture
-      Camera.getPicture(options).then((imageData) => {
-        // imageData is a base64 encoded string
-          console.log(imageData);
-      }, (err) => {
-          console.log(err);
-      });
+    this.nav.present(actionSheet);
   }
 
-  ///core/api/v2/target-reports/update-all
-  ///core/api/v2/target-reports/publish
-  /*vm.updateTargets = function() {
-      ReportsService.updateTargets(vm.dayform)
-        .then(function(response) {
-          if(!vm.autosave) {
-            if (response.data.error) {
-                swal({title: "Ошибка!", text: response.data.error, type: "error"});
-            } else {
-                swal({
-                    title: "Отчет сохранен!",
-                    text: "Теперь можно опубликовать.",
-                    type: "success"
+  attachImages(index) {
+    let actionSheet = ActionSheet.create({
+      title: 'Загрузить фотографию',
+      buttons: [
+        {
+          text: 'Камера',
+          handler: () => {
+            let loading = Loading.create();
+
+            this.nav.present(loading);
+
+            let options = {
+              quality: 80,
+              destinationType: Camera.DestinationType.DATA_URL,
+              sourceType: Camera.PictureSourceType.CAMERA,
+              allowEdit: true,
+              encodingType: Camera.EncodingType.JPEG,
+              saveToPhotoAlbum: false,
+              correctOrientation: true
+            };
+
+            navigator.camera.getPicture((imageData) => {
+              this.ds.post('core/api/v2/file/upload-base64', {
+                image: "data:image/jpeg;base64," + imageData
+              })
+                .subscribe(data => {
+                  loading.dismiss();
+                  console.log(JSON.stringify(data));
+                  console.log(JSON.stringify(this.photos[index]));
+                  if(!data.error) {
+                    this.photos[index].push(data.result);
+                  } else {
+                    let alert = Alert.create({
+                      title: 'Ошибка!',
+                      subTitle: data.error,
+                      buttons: ['OK']
+                    });
+
+                    this.nav.present(alert);
+                  }
                 });
-            }
-          } else {
-            vm.autosave = false;
+            }, (error) => {
+              loading.dismiss();
+            }, options);
           }
-        });
-    };*/
+        },{
+          text: 'Галерея',
+          handler: () => {
+            let loading = Loading.create();
+
+            this.nav.present(loading);
+
+            let options = {
+              quality: 80,
+              destinationType: Camera.DestinationType.DATA_URL,
+              sourceType: Camera.PictureSourceType.PHOTOLIBRARY,
+              allowEdit: true,
+              encodingType: Camera.EncodingType.JPEG,
+              saveToPhotoAlbum: false,
+              correctOrientation: true
+            };
+
+            navigator.camera.getPicture((imageData) => {
+              this.ds.post('core/api/v2/file/upload-base64', {
+                image: "data:image/jpeg;base64," + imageData
+              })
+                .subscribe(data => {
+                  loading.dismiss();
+                  if(!data.error) {
+                    this.photos[index].push(data.result);
+                  } else {
+                    let alert = Alert.create({
+                      title: 'Ошибка!',
+                      subTitle: data.error,
+                      buttons: ['OK']
+                    });
+
+                    this.nav.present(alert);
+                  }
+                });
+            }, (error) => {
+              loading.dismiss();
+            }, options);
+          }
+        },{
+          text: 'Отмена',
+          role: 'cancel',
+          handler: () => {
+          }
+        }
+      ]
+    });
+    this.nav.present(actionSheet);
+  }
 
   saveReport() {
+    this.targets.reply.reply.images = this.photos[0] || [];
+    console.log(JSON.stringify(this.photos));
+
+    for (var item in this.targets.target_reports.target_reports) {
+      this.targets.target_reports.target_reports[item].images = this.photos[parseInt(item)+1];
+    }
     this.ds.post('core/api/v2/target-reports/update-all', this.targets)
       .subscribe(data => {
         if(!data.error) {

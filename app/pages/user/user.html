@@ -1,19 +1,201 @@
 <ion-header>
-  <ion-navbar orange>
+  <ion-navbar light>
     <button menuToggle>
       <ion-icon name="menu"></ion-icon>
     </button>
 
-    <ion-title>{{user.profile.name}}</ion-title>
-
-    <ion-buttons end>
-      <button (click)="showPopover($event)">
-        <ion-icon name="more"></ion-icon>
-      </button>
-    </ion-buttons>
+    <ion-title>{{user.name}}</ion-title>
   </ion-navbar>
 </ion-header>
 
 <ion-content>
+  <ion-card full-width class="profile-card">
+    <ion-item>
+      <ion-avatar item-left class="avatar">
+        <img width="100px" *ngIf="user.avatar" src="http://api.gofocus.ru/img/170/{{user.avatar}}">
+        <img width="100px "*ngIf="!user.avatar" src="images/No-Image-Icon_medium.png">
+      </ion-avatar>
+      <h2>{{user.name}} {{user.soname}}</h2>
+      <p>{{user.city}}</p>
+    </ion-item>
 
+    <ion-item *ngIf="relations !== 4">
+      <button *ngIf="relations === 0" tappable dark full (click)="sendRequest(user.user_id)">Подписаться</button>
+      <button *ngIf="relations === 1" tappable dark full (click)="acceptRequest(user.user_id)">Принять запрос</button>
+      <button *ngIf="relations === 2 || relations === 3" tappable dark full (click)="removeFriend(user.user_id)">Отписаться</button>
+    </ion-item>
+
+    <ion-scroll scrollX="true" class="scrollable-segment">
+      <ion-segment [(ngModel)]="displayMode" dark class="profileModes">
+        <ion-segment-button full value="0">
+          <span *ngIf="user.counters">{{user.counters.posts_count}}</span>
+          записей
+        </ion-segment-button>
+        <ion-segment-button value="1" (click)="getTargets(_id)">
+          <span *ngIf="user.counters">{{user.counters.targets_count}}</span>
+          целей
+        </ion-segment-button>
+        <ion-segment-button value="2" (click)="loadRoutines()">
+          <span *ngIf="user.counters">{{user.counters.routines_count}}</span>
+          привычек
+        </ion-segment-button>
+        <ion-button tappable class="segmented" (click)="openSubscribers(subscribers)">
+          <span *ngIf="user.counters">{{subscribers.length}}</span>
+          подписчиков
+        </ion-button>
+        <ion-button tappable class="segmented" (click)="openSubscribes(subscribes)">
+          <span *ngIf="user.counters">{{subscribes.length}}</span>
+          подписок
+        </ion-button>
+      </ion-segment>
+    </ion-scroll>
+
+
+  </ion-card>
+
+  <div [ngSwitch]="displayMode">
+    <div *ngSwitchCase="'0'">
+      <div *ngIf="posts.data">
+        <div *ngFor="let item of posts.data; let i = index;">
+          <ion-card full-width>
+            <ion-item>
+              <ion-avatar item-left>
+                <img *ngIf="item.user_profile.avatar" src="http://api.gofocus.ru/img/170/{{item.user_profile.avatar}}">
+                <img *ngIf="!item.user_profile.avatar" src="images/No-Image-Icon_medium.png">
+              </ion-avatar>
+              <h2>{{item.user_profile.name}} {{item.user_profile.soname}}</h2>
+              <p>{{item.created_at | amTimeAgo}}</p>
+            </ion-item>
+
+            <ion-segment padding [(ngModel)]="postMode[i]" dark post-mode>
+              <ion-segment-button value="0">
+                Отчет
+              </ion-segment-button>
+              <ion-segment-button value="1">
+                Задачи
+              </ion-segment-button>
+
+              <ion-segment-button value="2">
+                Привычки
+              </ion-segment-button>
+            </ion-segment>
+
+            <div [ngSwitch]="postMode[i]">
+              <div *ngSwitchCase="'0'">
+                <ion-card-content *ngIf="item.reply" (click)="openPost(item, false)">
+                  <ion-card-title *ngIf="item.reply.day_conclusion">
+                    {{item.reply.day_conclusion}}
+                  </ion-card-title>
+
+                  <p *ngIf="item.reply.description">{{item.reply.description}}</p>
+                </ion-card-content>
+
+                <div class="slider" *ngIf="images">
+                  <div *ngFor="let img of images[i]; let index = index;">
+                    <div *ngIf="index === 0" class="slider-item first">
+                      <img src="http://api.gofocus.ru/img-full/{{img}}">
+                    </div>
+                    <div *ngIf="index !== 0" class="slider-item">
+                      <img src="http://api.gofocus.ru/img-full/{{img}}">
+                    </div>
+                  </div>
+                </div>
+
+                <ion-card-content *ngIf="item.post_state.is_dead_post">
+                  <ion-card-title>
+                    Игрок потерял фокус
+                  </ion-card-title>
+                </ion-card-content>
+              </div>
+
+              <div *ngSwitchCase="'1'">
+                <ion-card-content>
+                  <ion-card-title>
+                    Активные задачи
+                  </ion-card-title>
+
+                  <div *ngFor="let task of item.tasks; let tid = index;">
+                    <p *ngIf="!task.done">{{task.name}}</p>
+                  </div>
+
+                  <ion-card-title>
+                    Завершенные задачи
+                  </ion-card-title>
+
+                  <div *ngFor="let task of item.tasks; let tid = index;">
+                    <p *ngIf="task.done"><ion-icon green name="checkmark-circle"></ion-icon> {{task.name}}</p>
+                  </div>
+                </ion-card-content>
+              </div>
+
+              <div *ngSwitchCase="'2'">
+                <ion-card-content>
+                  <ion-list>
+                    <div *ngFor="let routine of item.routines; let rid = index;">
+                      <ion-item *ngIf="routine.done">
+                        <h2><ion-badge [style.background-color]="routine.routine[0].color">+1</ion-badge>{{routine.routine[0].name}}</h2>
+
+                        <ion-note item-right>
+                          {{ routine.routine[0].done_routine_reports.length }} из {{ routine.routine[0].count }}
+                        </ion-note>
+                      </ion-item>
+                    </div>
+                  </ion-list>
+                </ion-card-content>
+              </div>
+            </div>
+
+            <ion-row>
+              <ion-col>
+                <button dark clear small (click)="likePost(item)">
+                  <ion-icon name="heart" [ngClass]="{'liked': item.user_liked}"></ion-icon>
+                  <div>{{item.likes.length || '0'}}</div>
+                </button>
+              </ion-col>
+
+              <ion-col text-center *ngIf="!item.post_state.is_dead_post">
+                <button dark clear small (click)="openPost(item, true)">
+                  <ion-icon name="text"></ion-icon>
+                  <div>{{item.comments_count}}</div>
+                </button>
+              </ion-col>
+
+              <ion-col right text-right *ngIf="!item.post_state.is_dead_post">
+                <button dark clear small (click)="openPost(item, false)">
+                  <ion-icon name="arrow-forward"></ion-icon>
+                </button>
+              </ion-col>
+            </ion-row>
+
+          </ion-card>
+        </div>
+
+        <ion-infinite-scroll *ngIf="posts.next_page_url" (ionInfinite)="loadMore(posts.next_page_url)">
+         <ion-infinite-scroll-content></ion-infinite-scroll-content>
+       </ion-infinite-scroll>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'1'">
+      <div *ngIf="targets">
+        <div *ngFor="let item of targets; let i = index;">
+          <ion-card>
+            <img *ngIf="item.image_path" src="//api.gofocus.ru/img/170/{{item.image_path}}"/>
+            <ion-card-content>
+              <ion-card-title>
+                {{item.name}}
+                </ion-card-title>
+              <p>
+                {{item.description}}
+              </p>
+            </ion-card-content>
+          </ion-card>
+        </div>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'2'">
+      Routines
+    </div>
+  </div>
 </ion-content>

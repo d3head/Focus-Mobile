@@ -1,4 +1,7 @@
 .goals-screen {
+  ion-list {
+    margin-top: 60px;
+  }
   .heading {
     padding-left: 0;
     background: #f9f9f9;
@@ -11,6 +14,24 @@
   .target-complete {
     //color: #87D37C;
   }
+  ion-scroll {
+    height: 50px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    ::-webkit-scrollbar,
+    *::-webkit-scrollbar {
+      display: none;
+    }
+  }
+  .photos {
+    width: 100%;
+
+    img {
+      width: 50px;
+      height: 50px;
+      margin-right: 15px;
+    }
+  }
 
   .expandedGoal  {
     visibility: hidden;
@@ -21,14 +42,14 @@
 
     &.active {
       visibility: visible;
-      min-height: 150px;
+      height: 100%;
       opacity: 1;
       transition: 0.2s all ease;
     }
 
     &.day {
       &.active {
-        min-height: 305px;
+        height: 100%;
       }
     }
   }
@@ -39,10 +60,23 @@
       margin: 0;
       padding: 0;
       float: left;
+      margin-bottom: 35px;
 
       &:first-child {
         margin-right: 1%;
       }
+    }
+  }
+
+  .goals-bar {
+    background: transparent;
+
+    &.fixed {
+      position: fixed;
+      top: 65px;
+      z-index: 3;
+      padding-top: 10px;
+      background: rgba(255, 255 ,255, 0.9);
     }
   }
 }

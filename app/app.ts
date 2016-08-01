@@ -13,6 +13,9 @@ import {GoalsScreen} from './pages/goals/goals';
 import {RoutinesScreen} from './pages/routines/routines';
 import {NewsScreen} from './pages/news/news';
 import {SettingsScreen} from './pages/settings/settings';
+import {UserScreen} from './pages/user/user';
+
+/// <reference path="cordova.d.ts" />
 
 let userEvent = new SyncEvent();
 
@@ -45,7 +48,8 @@ class MyApp {
       goals: GoalsScreen,
       routines: RoutinesScreen,
       news: NewsScreen,
-      settings: SettingsScreen
+      settings: SettingsScreen,
+      user: UserScreen
     };
 
     this.user = [];
@@ -58,6 +62,8 @@ class MyApp {
     this.AuthService.isAuthorized().then(data => {
         if(data) {
           this.nav.setRoot(TasksScreen);
+          //this.nav.setRoot(GoalsScreen);
+
           this.AuthService.getUser().then(data => {
             this.user = JSON.parse(data);
             console.log(this.user);
@@ -75,7 +81,6 @@ class MyApp {
       // Okay, so the platform is ready and our plugins are available.
       // Here you can do any higher level native things you might need.
       StatusBar.styleDefault();
-
       let disconnectSubscription = Network.onDisconnect().subscribe(() => {
         let toast = Toast.create({
           message: 'Отсутсвует интернет-подключение',

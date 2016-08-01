@@ -243,7 +243,7 @@ export class TasksScreen {
   }
 
   formatedTaskTime (minutes: number) {
-    let hours: number = Math.round(minutes / 60);
+    var hours: number = parseInt((parseInt(minutes.toString())  / 60).toString());
     let min: number = minutes - hours * 60;
     if(hours == 0) return min + ' мин. ';
     if(hours == 1||hours == 21) return hours + ' час ' + min + ' мин. ';
@@ -333,6 +333,9 @@ export class TasksScreen {
         }
         return {p: info.q_progress, t:info.q_estimate, po: info.o_progress, to:info.o_estimate};
     };*/
+  parseInt(val) {
+    return parseInt(val);
+  }
 
   countTasks() {
     this.counters.required_done = 0;

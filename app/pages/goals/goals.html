@@ -1,5 +1,5 @@
 <ion-header>
-  <ion-navbar orange>
+  <ion-navbar light>
     <button menuToggle>
       <ion-icon name="menu"></ion-icon>
     </button>
@@ -17,8 +17,8 @@
   <ion-icon name="add"></ion-icon>
 </button>
 
-<ion-content>
-  <ion-list *ngIf="targets">
+<ion-content id="goals-content">
+  <ion-list *ngIf="targets" class="list">
     <ion-item tappable (click)="expandGoal(0)" class="heading">
       <ion-icon *ngIf="targets.reply.reply.day_conclusion && targets.reply.reply.description" name="checkmark-circle" green class="target-complete"></ion-icon>
       Вывод дня
@@ -31,12 +31,12 @@
     <div class="expandedGoal day {{expandedGoal[0].visible ? 'active': ''}}">
       <ion-item>
         <ion-label stacked>Главный вывод дня</ion-label>
-        <ion-input type="text" [(ngModel)]="targets.reply.reply.day_conclusion"></ion-input>
+        <ion-input type="text" [(ngModel)]="targets.reply.reply.day_conclusion" (ngModelChange)="calcProgress()"></ion-input>
       </ion-item>
 
       <ion-item>
         <ion-label stacked>Подробнее</ion-label>
-        <ion-textarea [(ngModel)]="targets.reply.reply.description"></ion-textarea>
+        <ion-textarea [(ngModel)]="targets.reply.reply.description" (ngModelChange)="calcProgress()"></ion-textarea>
       </ion-item>
 
       <ion-item>
@@ -50,7 +50,14 @@
       </ion-item>
 
       <ion-item no-border>
-        <button orange outline (click)="attachImages(0)"><ion-icon name="attach"></ion-icon>Прикрепить фотографию</button>
+        <div *ngIf="photos[0]">
+          <ion-scroll scrollX="true" *ngIf="photos[0].length > 0">
+            <div class="photos">
+              <img *ngFor="let img of photos[0];let $index = index; trackBy:$index" src="http://api.gofocus.ru/img/170/{{img}}" tappable (click)="photosAction(0, $index)"/>
+            </div>
+          </ion-scroll>
+        </div>
+        <button dark outline (click)="attachImages(0)"><ion-icon name="attach"></ion-icon>Прикрепить фотографию</button>
       </ion-item>
     </div>
 
@@ -67,20 +74,41 @@
         <div class="expandedGoal {{expandedGoal[$index+1].visible ? 'active': ''}}">
           <ion-item>
             <ion-label stacked>Подробнее</ion-label>
-            <ion-textarea [(ngModel)]="item.comment"></ion-textarea>
+            <ion-textarea [(ngModel)]="item.comment" (ngModelChange)="calcProgress()"></ion-textarea>
           </ion-item>
 
           <ion-item no-border>
-            <button orange outline><ion-icon name="attach"></ion-icon>Прикрепить фотографию</button>
+            <div *ngIf="photos[parseInt($index)+1]">
+              <ion-scroll scrollX="true" *ngIf="photos[parseInt($index)+1].length > 0">
+                <div class="photos">
+                  <img *ngFor="let img of photos[parseInt($index)+1];let $iindex = index; trackBy:$iindex" src="http://api.gofocus.ru/img/170/{{img}}" tappable (click)="photosAction(parseInt($index)+1, $iindex)"/>
+                </div>
+              </ion-scroll>
+            </div>
+            <button dark outline (click)="attachImages(parseInt($index)+1)"><ion-icon name="attach"></ion-icon>Прикрепить фотографию</button>
           </ion-item>
         </div>
       </div>
     </div>
   </ion-list>
 
-  <div class="report-btns" padding>
-    <button orange outline (click)="saveReport()">Сохранить</button>
+  <div padding *ngIf="progress <= 90">
+    Чтобы отправить отчет, необходимо заполнить все поля.
+  </div>
 
-    <button orange (click)="publishReport()">Опубликовать</button>
+  <div class="report-btns" padding>
+    <button primary outline (click)="saveReport()">Сохранить</button>
+
+    <button primary (click)="publishReport()" [disabled]="disableSend">Опубликовать</button>
   </div>
 </ion-content>
+
+<ion-grid class="progress-bar goals-bar fixed">
+  <ion-row>
+    <ion-col width-30>Отчет заполнен на {{progress}}%</ion-col>
+  </ion-row>
+
+  <ion-row>
+    <ion-col><div class="progress"><div class="bar" [ngStyle]="{'width': progress + '%'}"></div></div></ion-col>
+  </ion-row>
+</ion-grid>

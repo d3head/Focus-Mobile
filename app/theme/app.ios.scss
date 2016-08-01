@@ -29,3 +29,14 @@
 // App iOS Only Sass
 // --------------------------------------------------
 // CSS that should only apply to the iOS app
+
+[post-mode] {
+  .segment-activated {
+    background: #a1a1a1 !important;
+    color: #fff !important;
+  }
+
+  .segment-button {
+    border-color: #a1a1a1 !important;
+  }
+}

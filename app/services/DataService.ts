@@ -63,6 +63,20 @@ export class DataService {
     return this.http.get('/api/' + url, options).map(res => res.json());
   }
 
+  getClear(url, data) {
+    let headers = new Headers();
+    this.createAuthorizationHeader(headers, data, false);
+
+    let options = {
+      headers: headers,
+      search: this.jsonToQueryString(data)
+    }
+
+    //return this.http.get(`${API.API_ENDPOINT}/${url}`, options).map(res => res.json());
+    return this.http.get(url, options).map(res => res.json());
+    //return this.http.get('/api/' + url, options).map(res => res.json());
+  }
+
   post(url, data) {
     let headers = new Headers();
     this.createAuthorizationHeader(headers, data, true);

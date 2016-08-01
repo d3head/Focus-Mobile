@@ -5,7 +5,7 @@
   </ion-toolbar>-->
 
   <ion-content sidebar>
-    <ion-card *ngIf="user.profile" class="avatar">
+    <ion-card *ngIf="user.profile" class="avatar" tappable (click)="openPage('user')">
       <img src="http://api.gofocus.ru/img/170/{{user.profile.avatar}}">
 
       <div class="user">

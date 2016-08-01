@@ -1,10 +1,10 @@
 <ion-header>
-  <ion-navbar orange>
+  <ion-navbar light>
     <button menuToggle>
       <ion-icon name="menu"></ion-icon>
     </button>
 
-    <ion-segment [(ngModel)]="displayMode" light>
+    <ion-segment [(ngModel)]="displayMode" dark>
       <ion-segment-button value="0" (click)="getNewsSubscribers(today)">
         Подписки
       </ion-segment-button>
@@ -32,7 +32,7 @@
       <div *ngIf="news.data">
         <div *ngFor="let item of news.data; let i = index;">
           <ion-card full-width>
-            <ion-item>
+            <ion-item tappable (click)="openProfile(item.user_id)">
               <ion-avatar item-left>
                 <img *ngIf="item.user.profile.avatar" src="http://api.gofocus.ru/img/170/{{item.user.profile.avatar}}">
                 <img *ngIf="!item.user.profile.avatar" src="images/No-Image-Icon_medium.png">
@@ -41,7 +41,7 @@
               <p>{{item.created_at | amTimeAgo}}</p>
             </ion-item>
 
-            <ion-segment padding [(ngModel)]="postMode[i]" orange>
+            <ion-segment padding [(ngModel)]="postMode[i]" dark post-mode>
               <ion-segment-button value="0">
                 Отчет
               </ion-segment-button>
@@ -154,7 +154,7 @@
       <div *ngIf="news.data">
         <div *ngFor="let item of news.data; let i = index;">
           <ion-card full-width>
-            <ion-item>
+            <ion-item tappable (click)="openProfile(item.user_id)">
               <ion-avatar item-left>
                 <img *ngIf="item.user.profile.avatar" src="http://api.gofocus.ru/img/170/{{item.user.profile.avatar}}">
                 <img *ngIf="!item.user.profile.avatar" src="images/No-Image-Icon_medium.png">
@@ -163,7 +163,7 @@
               <p>{{item.created_at | amTimeAgo}}</p>
             </ion-item>
 
-            <ion-segment padding [(ngModel)]="postMode[i]" orange>
+            <ion-segment padding [(ngModel)]="postMode[i]" dark post-mode>
               <ion-segment-button value="0">
                 Отчет
               </ion-segment-button>

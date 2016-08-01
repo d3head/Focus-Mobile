@@ -1,5 +1,5 @@
 <ion-header>
-  <ion-navbar orange>
+  <ion-navbar light>
     <button menuToggle>
       <ion-icon name="menu">Назад</ion-icon>
     </button>
@@ -14,15 +14,20 @@
   </ion-refresher>-->
   <ion-card full-width>
     <ion-item>
-      <ion-avatar item-left>
+      <ion-avatar item-left *ngIf="item.user">
         <img *ngIf="item.user.profile.avatar" src="http://api.gofocus.ru/img/170/{{item.user.profile.avatar}}">
         <img *ngIf="!item.user.profile.avatar" src="images/No-Image-Icon_medium.png">
       </ion-avatar>
-      <h2>{{item.user.profile.name}} {{item.user.profile.soname}}</h2>
+      <ion-avatar item-left *ngIf="!item.user">
+        <img *ngIf="item.user_profile.avatar" src="http://api.gofocus.ru/img/170/{{item.user_profile.avatar}}">
+        <img *ngIf="!item.user_profile.avatar" src="images/No-Image-Icon_medium.png">
+      </ion-avatar>
+      <h2 *ngIf="item.user">{{item.user.profile.name}} {{item.user.profile.soname}}</h2>
+      <h2 *ngIf="!item.user">{{item.user_profile.name}} {{item.user_profile.soname}}</h2>
       <p>{{item.created_at | amTimeAgo}}</p>
     </ion-item>
 
-    <ion-segment padding [(ngModel)]="postMode" orange>
+    <ion-segment padding [(ngModel)]="postMode" dark post-mode>
       <ion-segment-button value="0">
         Отчет
       </ion-segment-button>

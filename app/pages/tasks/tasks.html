@@ -1,10 +1,10 @@
 <ion-header>
-  <ion-navbar orange>
+  <ion-navbar light>
     <button menuToggle>
       <ion-icon name="menu"></ion-icon>
     </button>
 
-    <ion-segment [(ngModel)]="displayMode" light>
+    <ion-segment [(ngModel)]="displayMode" dark>
       <ion-segment-button value="0" small style="max-width: 90px !important;">
         <span *ngIf="today == trueToday">Сегодня</span>
         <span *ngIf="today != trueToday">{{today}}</span>
@@ -25,7 +25,7 @@
   </ion-navbar>
 </ion-header>
 
-<button orange class="add-task-btn" fab (click)="addTaskScreen()">
+<button dark class="add-task-btn" fab (click)="addTaskScreen()">
   <ion-icon name="add"></ion-icon>
 </button>
 
@@ -36,17 +36,20 @@
   </ion-refresher>-->
 
   <div [ngSwitch]="displayMode">
-    <div *ngSwitchWhen="'0'">
+    <div *ngSwitchCase="'0'">
       <ion-list *ngIf="allTasks.all_tasks">
           <ion-list-header>
             Обязательные задачи
           </ion-list-header>
 
-          <ion-grid class="progress-bar">
+          <ion-grid class="progress-bar" *ngIf="allTasks.required_tasks_count">
             <ion-row>
-              <ion-col width-30>Осталось {{counters.required_not_done}} из {{allTasks.required_tasks_count}} ({{formatedTaskTime(counters.required_estimate)}})</ion-col>
+              <ion-col width-40>Осталось {{counters.required_not_done}} из {{allTasks.required_tasks_count}}</ion-col>
 
-              <ion-col text-right width-20>{{counters.required_done / allTasks.required_tasks_count * 100 }}%</ion-col>
+              <ion-col width-40 text-center>{{formatedTaskTime(counters.required_estimate)}}</ion-col>
+
+              <ion-col text-right width-20 *ngIf="allTasks.required_tasks_count">{{parseInt(counters.required_done / allTasks.required_tasks_count * 100 )}}%</ion-col>
+              <ion-col text-right width-20 *ngIf="!allTasks.required_tasks_count">0%</ion-col>
             </ion-row>
 
             <ion-row>
@@ -94,11 +97,14 @@
           Дополнительные задачи
         </ion-list-header>
 
-        <ion-grid class="progress-bar">
+        <ion-grid class="progress-bar" *ngIf="allTasks.optional_tasks_count">
           <ion-row>
-            <ion-col width-30>Осталось {{counters.optional_not_done}} из {{allTasks.optional_tasks_count}} ({{formatedTaskTime(counters.optional_estimate)}})</ion-col>
+            <ion-col width-40>Осталось {{counters.optional_not_done}} из {{allTasks.optional_tasks_count}}</ion-col>
 
-            <ion-col text-right width-20>{{counters.optional_done / allTasks.optional_tasks_count * 100 }}%</ion-col>
+            <ion-col width-40 text-center>{{formatedTaskTime(counters.optional_estimate)}}</ion-col>
+
+            <ion-col text-right width-20 *ngIf="allTasks.optional_tasks_count">{{parseInt(counters.optional_done / allTasks.optional_tasks_count * 100 )}}%</ion-col>
+            <ion-col text-right width-20 *ngIf="!allTasks.optional_tasks_count">0%</ion-col>
           </ion-row>
 
           <ion-row>
@@ -186,7 +192,7 @@
       </ion-list>
     </div>
 
-    <div *ngSwitchWhen="'1'">
+    <div *ngSwitchCase="'1'">
       <ion-list *ngIf="allTasks.all_tasks">
         <div *ngFor="let key of keys();">
           <div *ngIf="key && (allTasks.all_tasks[key]['1'].length > 0 || allTasks.all_tasks[key]['2'].length > 0)">
@@ -253,7 +259,7 @@
       </ion-list>
     </div>
 
-    <div *ngSwitchWhen="'2'">
+    <div *ngSwitchCase="'2'">
       <ion-list *ngIf="allTasks.backlog_tasks">
         <div *ngFor="let item of allTasks.backlog_tasks | orderBy: ['created_at']">
           <ion-item-sliding #slidingItem>

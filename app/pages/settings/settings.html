@@ -1,5 +1,5 @@
 <ion-header>
-  <ion-navbar orange>
+  <ion-navbar light>
     <button menuToggle>
       <ion-icon name="menu"></ion-icon>
     </button>
@@ -17,6 +17,30 @@
     </div>
   </ion-card>
 
-  <button danger full (click)="logout()">Выйти</button>
+  <ion-list>
+    <ion-item tappable (click)="openNotificationsScreen()">
+      <ion-icon name="notifications-outline" item-left></ion-icon>
+      Уведомления
+    </ion-item>
+  </ion-list>
+
+  <ion-list>
+    <ion-item tappable (click)="openAccountScreen()">
+      <ion-icon name="person-outline" item-left></ion-icon>
+      Учетная запись
+    </ion-item>
+
+    <ion-item tappable (click)="openAppScreen()">
+      <ion-icon name="settings-outline" item-left></ion-icon>
+      Основное
+    </ion-item>
+
+    <ion-item tappable (click)="openBalanceScreen()">
+      <ion-icon name="cash-outline" item-left></ion-icon>
+      Баланс
+    </ion-item>
+  </ion-list>
+
+  <button danger clear full (click)="logout()">Выйти</button>
 
 </ion-content>
