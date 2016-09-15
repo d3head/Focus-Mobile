@@ -21,7 +21,6 @@ export class AuthService {
     this.local.set('token', data.token);
     this.local.set('user', JSON.stringify(data.user[0]));
     this.user = JSON.stringify(data.user[0]);
-    this.updateUserInfo.emit(this.user);
   }
 
   logout() {
@@ -31,5 +30,9 @@ export class AuthService {
 
   getUser() {
     return this.local.get('user');
+  }
+
+  getAppSettings() {
+    return this.local.get('appSettings');
   }
 }

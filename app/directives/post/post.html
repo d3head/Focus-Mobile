@@ -44,7 +44,7 @@
             </div>
           </div>
 
-          <ion-card-content *ngIf="item.post_state.is_dead_post">
+          <ion-card-content *ngIf="item.type == 1">
             <ion-card-title>
               Игрок потерял фокус
             </ion-card-title>
@@ -92,18 +92,18 @@
         <ion-col>
           <button dark clear small (click)="likePost(item)">
             <ion-icon name="heart" [ngClass]="{'liked': item.user_liked}"></ion-icon>
-            <div>{{item.likes.length || '0'}}</div>
+            <div>{{item.likes || '0'}}</div>
           </button>
         </ion-col>
 
-        <ion-col text-center *ngIf="!item.post_state.is_dead_post">
+        <ion-col text-center *ngIf="item.type != 1">
           <button dark clear small (click)="openPost(item, true)">
             <ion-icon name="text"></ion-icon>
             <div>{{item.comments_count}}</div>
           </button>
         </ion-col>
 
-        <ion-col right text-right *ngIf="!item.post_state.is_dead_post">
+        <ion-col right text-right *ngIf="item.type != 1">
           <button dark clear small (click)="openPost(item, false)">
             <ion-icon name="arrow-forward"></ion-icon>
           </button>

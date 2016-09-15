@@ -1,0 +1,215 @@
+<ion-header>
+  <ion-navbar light>
+    <ion-title>Старт</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content *ngIf="user">
+  <div *ngIf="step == 1">
+    <ion-card>
+      <ion-card-header>
+        Шаг 1.
+      </ion-card-header>
+
+      <ion-card-content>
+        Добро пожаловать в Фокус! Мы научим тебя пользоваться приложением. Для начала заполни профиль!
+      </ion-card-content>
+    </ion-card>
+
+    <ion-list *ngIf="user.profile">
+      <ion-item>
+        <ion-avatar item-left>
+          <img *ngIf="user.profile.avatar" src="http://dev.gofocus.ru/img/170/{{user.profile.avatar}}">
+          <img *ngIf="!user.profile.avatar" src="http://dev.gofocus.ru/img/No-Image-Icon_medium.png">
+        </ion-avatar>
+        <button dark (click)="attachPhoto()" [disabled]="disableAttach"><ion-icon name="attach"></ion-icon>Загрузить фотографию</button>
+      </ion-item>
+
+    </ion-list>
+
+    <ion-list *ngIf="user.profile">
+      <ion-item>
+        <ion-label>Имя</ion-label>
+        <ion-input type="text" [(ngModel)]="user.profile.name"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label>Фамилия</ion-label>
+        <ion-input type="text" [(ngModel)]="user.profile.soname"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label>Пол</ion-label>
+        <ion-select [(ngModel)]="user.profile.gender">
+          <ion-option value="2">Мужской</ion-option>
+          <ion-option value="1">Женский</ion-option>
+        </ion-select>
+      </ion-item>
+    </ion-list>
+
+    <button full primary (click)="stepTwo()">Дальше</button>
+  </div>
+
+  <div *ngIf="step == 2">
+    <ion-card>
+      <ion-card-header>
+        Шаг 2.
+      </ion-card-header>
+
+      <ion-card-content>
+        Отлично! Теперь давай добавим какую-нибудь привычку. <br><br>Регулярно повторяя определенное действие в течении 21 дня, оно закрепляется в нашем подсознании и формируется привычка. <br><br>Если не можешь придумать привычку, мы подготовили для тебя пару вариантов!
+      </ion-card-content>
+    </ion-card>
+
+    <ion-list>
+      <ion-item>
+        <ion-input type="text" placeholder="Содержание" [(ngModel)]="routineForm.name"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label>Цвет</ion-label>
+        <ion-select [(ngModel)]="routineForm.color" cancelText="Отмена" okText="Ок">
+          <ion-option *ngFor="let color of colors;let $index = index; trackBy:$index" value="{{color}}"><span>{{color}}</span></ion-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item>
+        <ion-label>Количество<sup>*</sup></ion-label>
+        <ion-input text-right type="number" placeholder="Количество" [(ngModel)]="routineForm.count"></ion-input>
+      </ion-item>
+    </ion-list>
+
+    <div padding style="margin-top: -30px;margin-bottom: 30px;"><small><sup>*</sup>Укажите количество повторений, которые сделаете за два месяца</small></div>
+
+    <ion-list>
+      <ion-item>
+        <ion-label>Напоминать о привычке</ion-label>
+        <ion-toggle [(ngModel)]="routineForm.remind"></ion-toggle>
+      </ion-item>
+
+      <ion-item *ngIf="routineForm.remind">
+        <ion-label>Когда напомнить</ion-label>
+        <ion-select [(ngModel)]="routineForm.remind_days" multiple="true" cancelText="Отмена" okText="Ок">
+          <ion-option value="Mo">Понедельник</ion-option>
+          <ion-option value="Tu">Вторник</ion-option>
+          <ion-option value="We">Среда</ion-option>
+          <ion-option value="Th">Четверг</ion-option>
+          <ion-option value="Fr">Пятница</ion-option>
+          <ion-option value="Sa">Суббота</ion-option>
+          <ion-option value="Su">Воскресенье</ion-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item *ngIf="routineForm.remind">
+        <ion-label>Во сколько напомнить</ion-label>
+        <ion-datetime displayFormat="HH:mm" [(ngModel)]="routineForm.remind_at"></ion-datetime>
+      </ion-item>
+    </ion-list>
+
+    <button full primary (click)="stepThree()">Дальше</button>
+  </div>
+
+  <div *ngIf="step == 3">
+    <ion-card>
+      <ion-card-header>
+        Шаг 3.
+      </ion-card-header>
+
+      <ion-card-content>
+        Молодец! А теперь давай поставим на завтра задачу!
+      </ion-card-content>
+    </ion-card>
+
+    <ion-list>
+      <ion-item>
+        <ion-input type="text" placeholder="Содержание" [(ngModel)]="taskForm.name"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label>Длительность</ion-label>
+        <ion-datetime displayFormat="HH:mm" pickerFormat="HH mm" [(ngModel)]="taskForm.estimate_time"></ion-datetime>
+      </ion-item>
+    </ion-list>
+
+    <ion-list>
+      <ion-item>
+        <ion-label>В Backlog</ion-label>
+        <ion-toggle [(ngModel)]="taskForm.backlog"></ion-toggle>
+      </ion-item>
+
+      <ion-item *ngIf="!taskForm.backlog">
+        <ion-label>Дата</ion-label>
+        <ion-datetime displayFormat="DD.MM.YYYY" [(ngModel)]="taskForm.estimate_date"></ion-datetime>
+      </ion-item>
+    </ion-list>
+
+    <ion-list>
+      <ion-item>
+        <ion-label>Напоминать о задаче</ion-label>
+        <ion-toggle [(ngModel)]="taskForm.remind"></ion-toggle>
+      </ion-item>
+
+      <ion-item *ngIf="taskForm.remind">
+        <ion-label>Когда напомнить</ion-label>
+        <ion-datetime displayFormat="DD.MM.YYYY" [(ngModel)]="taskForm.remind_date"></ion-datetime>
+      </ion-item>
+
+      <ion-item *ngIf="taskForm.remind">
+        <ion-label>Во сколько напомнить</ion-label>
+        <ion-datetime displayFormat="HH:mm" [(ngModel)]="taskForm.remind_time"></ion-datetime>
+      </ion-item>
+    </ion-list>
+
+    <ion-list>
+      <ion-item>
+        <ion-label>Обязательная</ion-label>
+        <ion-toggle [(ngModel)]="taskForm.important"></ion-toggle>
+      </ion-item>
+
+    </ion-list>
+
+    <button full primary (click)="stepFour()">Дальше</button>
+  </div>
+
+  <div *ngIf="step == 4">
+    <ion-card>
+      <ion-card-header>
+        Шаг 4.
+      </ion-card-header>
+
+      <ion-card-content>
+        И последний шаг: давай добавим цель!
+      </ion-card-content>
+    </ion-card>
+
+    <ion-list>
+      <ion-item>
+        <ion-input type="text" placeholder="Содержание" [(ngModel)]="goalForm.name"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label stacked>Критерий выполнения</ion-label>
+        <ion-textarea [(ngModel)]="goalForm.description"></ion-textarea>
+      </ion-item>
+    </ion-list>
+
+    <ion-list>
+      <ion-item>
+        <ion-label>Статус</ion-label>
+        <ion-select [(ngModel)]="goalForm.status">
+          <ion-option value="0">Активна</ion-option>
+          <ion-option value="2">Заморожена</ion-option>
+          <ion-option value="1">Выполнена</ion-option>
+        </ion-select>
+      </ion-item>
+    </ion-list>
+
+    <div class="full-img-container" *ngIf="goalForm.image_path">
+      <ion-img width="100%" src="//dev.gofocus.ru/img/thumbs/{{goalForm.image_path}}"></ion-img>
+    </div>
+
+    <button dark full (click)="attachImages()" [disabled]="disableAttach"><ion-icon name="attach"></ion-icon>Прикрепить фотографию</button>
+
+    <button full primar (click)="finish()">Завершить обучение</button>
+  </div>
+</ion-content>

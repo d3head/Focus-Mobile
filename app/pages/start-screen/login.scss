@@ -1,0 +1,37 @@
+.login-screen {
+  .form-errors {
+    border:1px solid red;
+    margin: 20px;
+  }
+  .error-box {
+    color: red;
+    text-align: center;
+  }
+}
+
+.warn {
+  background: #EC644B;
+  width: 100%;
+  //margin-left: 5%;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border-radius: 3px;
+  padding: 10px;
+  color: #fff;
+  font-size: 1.1rem;
+  position: relative;
+
+  &:before {
+    content: ' ';
+    display: block;
+    position: absolute;
+    left: 14px;
+    top: -7px;
+    width: 14px;
+    height: 14px;
+    background-color: #EC644B;
+    transform: rotate(45deg);
+    -webkit-transform: rotate(45deg);
+    -moz-transform: rotate(45deg);
+  }
+}

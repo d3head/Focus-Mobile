@@ -1,0 +1,283 @@
+<ion-header>
+  <ion-navbar light>
+    <button menuToggle>
+      <ion-icon name="menu"></ion-icon>
+    </button>
+
+    <ion-title>Дашборд</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+  <ion-card>
+    <ion-card-header>
+      До конца дня осталось
+    </ion-card-header>
+    <ion-card-content>
+      <div class="timer">{{timer}}</div>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <span class="indicator" [ngClass]="{'red': until, 'green': timerPanel.checkers.report_today}" item-left>о</span> Отчет за день
+    </ion-card-header>
+    <ion-card-content>
+      <strong>Правило 1:</strong> Каждый день до 3х часов ночи тебе нужно написать подробный отчет о результатах по каждой из своих целей.
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <span class="indicator" [ngClass]="{'red': until, 'green': timerPanel.checkers.task_tomorrow}" item-left>з</span> Задачи на завтра
+    </ion-card-header>
+    <ion-card-content>
+      <strong>Правило 2:</strong> Каждый день до 3х часов ночи тебе нужно поставить как минимум 1 обязательную задачу на завтра.
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <span class="indicator" [ngClass]="{'red': isDebtWarn, 'green': isDebtComplete}" item-left>д</span> Долги по задачам
+    </ion-card-header>
+    <ion-card-content>
+      <strong>Правило 3:</strong> На текущий момент у тебя {{timerPanel.checkers.not_done_tasks.count}} долгов по задачам за неделю. К концу воскресенья их должно быть не больше 5.
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      Статистика по задачам
+    </ion-card-header>
+    <ion-card-content>
+      <ion-slides pager [options]="sliderOptions">
+
+        <ion-slide>
+          <div class="progress-slide">
+            <ion-grid class="progress-bar" *ngIf="stats">
+              <ion-row>
+                <ion-col width-40>Завершено всего задач <strong>{{(stats.tasks.total_tasks_bl_done + stats.tasks.total_tasks_not_bl_done)}} из {{stats.tasks.total_tasks}}</strong></ion-col>
+              </ion-row>
+
+              <ion-row>
+                <ion-col><div class="progress"><div class="bar" [ngStyle]="{'width': ((stats.tasks.total_tasks_bl_done + stats.tasks.total_tasks_not_bl_done) * 100 / stats.tasks.total_tasks) +'%'}"></div></div></ion-col>
+              </ion-row>
+            </ion-grid>
+
+            <ion-grid class="progress-bar" *ngIf="stats">
+              <ion-row>
+                <ion-col width-40>Завершено обяз. задач <strong>{{stats.tasks.total_tasks_not_bl_done_requered}} из {{(stats.tasks.total_tasks_not_bl_not_done_requered + stats.tasks.total_tasks_not_bl_done_requered)}}</strong></ion-col>
+              </ion-row>
+
+              <ion-row>
+                <ion-col><div class="progress"><div class="bar" [ngStyle]="{'width': (stats.tasks.total_tasks_not_bl_done_requered * 100 / (stats.tasks.total_tasks_not_bl_not_done_requered + stats.tasks.total_tasks_not_bl_done_requered)) +'%'}"></div></div></ion-col>
+              </ion-row>
+            </ion-grid>
+
+            <ion-grid class="progress-bar" *ngIf="stats">
+              <ion-row>
+                <ion-col width-40>Завершено доп. задач <strong>{{stats.tasks.total_tasks_not_bl_done_not_requered}} из {{stats.tasks.total_tasks_not_bl_not_done_not_requered + stats.tasks.total_tasks_not_bl_done_not_requered}}</strong></ion-col>
+              </ion-row>
+
+              <ion-row>
+                <ion-col><div class="progress"><div class="bar" [ngStyle]="{'width': (stats.tasks.total_tasks_not_bl_done_not_requered * 100 / (stats.tasks.total_tasks_not_bl_not_done_not_requered + stats.tasks.total_tasks_not_bl_done_not_requered)) +'%'}"></div></div></ion-col>
+              </ion-row>
+            </ion-grid>
+
+            <ion-grid class="progress-bar" *ngIf="stats">
+              <ion-row>
+                <ion-col width-40>Завершено в бэклоге <strong>{{stats.tasks.total_tasks_bl_done}} из {{stats.tasks.total_tasks_bl}}</strong></ion-col>
+              </ion-row>
+
+              <ion-row>
+                <ion-col><div class="progress"><div class="bar" [ngStyle]="{'width': (stats.tasks.total_tasks_bl_done * 100 / stats.tasks.total_tasks_bl) +'%'}"></div></div></ion-col>
+              </ion-row>
+            </ion-grid>
+          </div>
+        </ion-slide>
+
+        <ion-slide>
+          <div class="progress-slide">
+            <ion-grid class="progress-bar" *ngIf="stats">
+              <ion-row>
+                <ion-col width-40>Завершено всего задач на <strong>{{hours(stats.tasks.total_tasks_bl_done_minutes + stats.tasks.total_tasks_not_bl_done_minutes)}} ч. из {{hours(stats.tasks.total_tasks_minutes)}} ч.</strong></ion-col>
+              </ion-row>
+
+              <ion-row>
+                <ion-col><div class="progress"><div class="bar" [ngStyle]="{'width': ((stats.tasks.total_tasks_bl_done_minutes + stats.tasks.total_tasks_not_bl_done_minutes) * 100 / stats.tasks.total_tasks_minutes) +'%'}"></div></div></ion-col>
+              </ion-row>
+            </ion-grid>
+
+            <ion-grid class="progress-bar" *ngIf="stats">
+              <ion-row>
+                <ion-col width-40>Завершено обяз. задач на <strong>{{hours(stats.tasks.total_tasks_not_bl_done_requered_minutes)}} ч. из {{hours(stats.tasks.total_tasks_not_bl_not_done_requered_minutes + stats.tasks.total_tasks_not_bl_done_requered_minutes)}} ч.</strong></ion-col>
+              </ion-row>
+
+              <ion-row>
+                <ion-col><div class="progress"><div class="bar" [ngStyle]="{'width': (stats.tasks.total_tasks_not_bl_done_requered_minutes * 100 / (stats.tasks.total_tasks_not_bl_not_done_requered_minutes + stats.tasks.total_tasks_not_bl_done_requered_minutes)) +'%'}"></div></div></ion-col>
+              </ion-row>
+            </ion-grid>
+
+            <ion-grid class="progress-bar" *ngIf="stats">
+              <ion-row>
+                <ion-col width-40>Завершено доп. задач на <strong>{{hours(stats.tasks.total_tasks_not_bl_done_not_requered_minutes)}} ч. из {{hours(stats.tasks.total_tasks_not_bl_not_done_not_requered_minutes + stats.tasks.total_tasks_not_bl_done_not_requered_minutes)}} ч.</strong></ion-col>
+              </ion-row>
+
+              <ion-row>
+                <ion-col><div class="progress"><div class="bar" [ngStyle]="{'width': (stats.tasks.total_tasks_not_bl_done_not_requered_minutes * 100 / (stats.tasks.total_tasks_not_bl_not_done_not_requered_minutes + stats.tasks.total_tasks_not_bl_done_not_requered_minutes)) +'%'}"></div></div></ion-col>
+              </ion-row>
+            </ion-grid>
+
+            <ion-grid class="progress-bar" *ngIf="stats">
+              <ion-row>
+                <ion-col width-40>Завершено в бэклоге на <strong>{{hours(stats.tasks.total_tasks_bl_done_minutes)}} ч. из {{hours(stats.tasks.total_tasks_bl_minutes)}} ч.</strong></ion-col>
+              </ion-row>
+
+              <ion-row>
+                <ion-col><div class="progress"><div class="bar" [ngStyle]="{'width': (stats.tasks.total_tasks_bl_done_minutes * 100 / stats.tasks.total_tasks_bl_minutes) +'%'}"></div></div></ion-col>
+              </ion-row>
+            </ion-grid>
+          </div>
+        </ion-slide>
+
+      </ion-slides>
+
+      <ion-grid class="progress-bar info-stats">
+        <ion-row>
+          <ion-col>
+            Всего задач
+          </ion-col>
+          <ion-col text-right>
+            <strong>{{stats.tasks.total_tasks}}</strong>
+          </ion-col>
+        </ion-row>
+
+        <ion-row>
+          <ion-col>
+            Время всех задач
+          </ion-col>
+          <ion-col text-right>
+            <strong>{{stats.tasks.total_tasks_minutes}} минут</strong>
+          </ion-col>
+        </ion-row>
+
+        <ion-row>
+          <ion-col>
+            Задач в бэклоге
+          </ion-col>
+          <ion-col text-right>
+            <strong>{{stats.tasks.total_tasks_bl}}</strong>
+          </ion-col>
+        </ion-row>
+
+        <ion-row>
+          <ion-col>
+            Время задач в бэклоге
+          </ion-col>
+          <ion-col text-right>
+            <strong>{{stats.tasks.total_tasks_bl_minutes}} минут</strong>
+          </ion-col>
+        </ion-row>
+
+        <ion-row>
+          <ion-col>
+            Остальных задач
+          </ion-col>
+          <ion-col text-right>
+            <strong>{{stats.tasks.total_tasks_not_bl}}</strong>
+          </ion-col>
+        </ion-row>
+
+        <ion-row>
+          <ion-col>
+            Время ост. задач
+          </ion-col>
+          <ion-col text-right>
+            <strong>{{stats.tasks.total_tasks_not_bl_minutes}} минут</strong>
+          </ion-col>
+        </ion-row>
+
+        <ion-row>
+          <ion-col>
+            Всего задач выполнено
+          </ion-col>
+          <ion-col text-right>
+            <strong>{{(stats.tasks.total_tasks_not_bl_done + stats.tasks.total_tasks_bl_done)}}</strong>
+          </ion-col>
+        </ion-row>
+
+        <ion-row>
+          <ion-col>
+            Выполнено задач в бэклоге
+          </ion-col>
+          <ion-col text-right>
+            <strong>{{stats.tasks.total_tasks_bl_done}}</strong>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      Статистика по привычкам
+    </ion-card-header>
+    <ion-card-content>
+      <ion-grid class="progress-bar info-stats">
+        <ion-row>
+          <ion-col>
+            Всего привычек
+          </ion-col>
+          <ion-col text-right>
+            <strong>{{stats.routines.all_routines_count}}</strong>
+          </ion-col>
+        </ion-row>
+
+        <ion-row>
+          <ion-col>
+            Завершено привычек
+          </ion-col>
+          <ion-col text-right>
+            <strong>{{stats.routines.done_routines_count}}</strong>
+          </ion-col>
+        </ion-row>
+
+        <ion-row>
+          <ion-col>
+            Не завершено привычек
+          </ion-col>
+          <ion-col text-right>
+            <strong>{{stats.routines.not_done_routines_count}}</strong>
+          </ion-col>
+        </ion-row>
+
+        <ion-row>
+          <ion-col>
+            Отчетов по привычкам
+          </ion-col>
+          <ion-col text-right>
+            <strong>{{stats.routines.total_checks}}</strong>
+          </ion-col>
+        </ion-row>
+
+        <ion-row>
+          <ion-col>
+            Отчетов на этой неделе
+          </ion-col>
+          <ion-col text-right>
+            <strong>{{stats.routines.total_checks_current_week}}</strong>
+          </ion-col>
+        </ion-row>
+
+        <ion-row>
+          <ion-col>
+            Отчетов на прошлой неделе
+          </ion-col>
+          <ion-col text-right>
+            <strong>{{stats.routines.total_checks_prev_week}}</strong>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

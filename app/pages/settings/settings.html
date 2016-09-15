@@ -10,7 +10,8 @@
 
 <ion-content>
   <ion-card *ngIf="user.profile" class="avatar">
-    <img src="http://api.gofocus.ru/img/170/{{user.profile.avatar}}">
+    <img *ngIf="user.profile.avatar" src="http://dev.gofocus.ru/img/170/{{user.profile.avatar}}">
+    <img *ngIf="!user.profile.avatar" src="http://dev.gofocus.ru/img/No-Image-Icon_medium.png">
 
     <div class="user">
       {{user.profile.name}} {{user.profile.soname}}
@@ -30,7 +31,7 @@
       Учетная запись
     </ion-item>
 
-    <ion-item tappable (click)="openAppScreen()">
+    <!--<ion-item tappable (click)="openAppScreen()">
       <ion-icon name="settings-outline" item-left></ion-icon>
       Основное
     </ion-item>
@@ -38,7 +39,7 @@
     <ion-item tappable (click)="openBalanceScreen()">
       <ion-icon name="cash-outline" item-left></ion-icon>
       Баланс
-    </ion-item>
+    </ion-item>-->
   </ion-list>
 
   <button danger clear full (click)="logout()">Выйти</button>

@@ -1,6 +1,6 @@
 import {Component, Input, Output, EventEmitter, ViewChild} from '@angular/core';
 import {DataService} from '../../services/DataService';
-import {Slides, Nav, Popover, NavParams, Alert, Modal, ViewController, Loading, Content, ActionSheet} from 'ionic-angular';
+import {Slides, Nav, PopoverController, NavParams, AlertController, Modal, ViewController, LoadingController, Content, ActionSheetController} from 'ionic-angular';
 import {Camera} from 'ionic-native';
 import * as moment from 'moment';
 import 'moment/locale/ru';
@@ -29,7 +29,11 @@ class PopoverPage {
   constructor(
     private navParams: NavParams,
     private ds: DataService,
-    private viewCtrl: ViewController
+    private viewCtrl: ViewController,
+    private alert: AlertController,
+    private loading: LoadingController,
+    private actionSheet: ActionSheetController,
+    private popover: PopoverController
   ) {
 
   }
@@ -61,7 +65,11 @@ export class NewsScreen {
 
   constructor(
     private ds: DataService,
-    private nav: Nav
+    private nav: Nav,
+    private alert: AlertController,
+    private loading: LoadingController,
+    private actionSheet: ActionSheetController,
+    private popover: PopoverController
   ) {
     this.today = moment(new Date().setTime(new Date().getTime() - (3*60*60*1000))).format('YYYY-MM-DD');
     this.displayMode = '0';
@@ -105,17 +113,12 @@ export class NewsScreen {
   }*/
 
   getNewsSubscribers(date) {
-    let loading = Loading.create();
-
-    this.nav.present(loading);
     this.news = [];
 
-    this.ds.get('core/api/v2/post/get-news-subscribers', {
+    this.ds.getGo('core/api/v2/post/get-news-subscribers', {
       date: date
     })
       .subscribe(data => {
-        loading.dismiss();
-
         if(!data.error) {
           let images = [];
           this.news = data.result;
@@ -144,19 +147,19 @@ export class NewsScreen {
 
           this.images = images;
         } else {
-          let alert = Alert.create({
+          let alert = this.alert.create({
             title: 'Ошибка!',
             subTitle: data.error,
             buttons: ['OK']
           });
 
-          this.nav.present(alert);
+          alert.present(alert);
         }
       });
   }
 
   showPopover(ev) {
-    let popover = Popover.create(PopoverPage, {
+    let popover = this.popover.create(PopoverPage, {
       today: this.today,
       cb: (data) => {
         this.today = data;
@@ -169,7 +172,7 @@ export class NewsScreen {
       }
     }, {enableBackdropDismiss: true});
 
-    this.nav.present(popover, { ev: ev });
+    popover.present({ ev: ev });
   }
 
   openPost(item, comment) {
@@ -180,7 +183,6 @@ export class NewsScreen {
     this.nav.push(UserScreen, {id: id});
   }
 
-
   likePost(item) {
     //api.likeAction = API_URL + "/social/api/v2/like/action";
 
@@ -190,32 +192,27 @@ export class NewsScreen {
     })
       .subscribe(data => {
         if(!data.error) {
-          console.log(item);
-          item.likes = data.result.likes;
+          item.likes = data.result.likes.length;
+          item.user_liked = data.result.your_like;
         } else {
-          let alert = Alert.create({
+          let alert = this.alert.create({
             title: 'Ошибка!',
             subTitle: data.error,
             buttons: ['OK']
           });
 
-          this.nav.present(alert);
+          alert.present(alert);
         }
       });
   }
 
   getNewsAll(date) {
-    let loading = Loading.create();
-
-    this.nav.present(loading);
     this.news = [];
 
-    this.ds.get('core/api/v2/post/get-news-world', {
+    this.ds.getGo('core/api/v2/post/get-news-world', {
       date: date
     })
       .subscribe(data => {
-        loading.dismiss();
-
         if(!data.error) {
           let images = [];
           this.news = data.result;
@@ -244,13 +241,13 @@ export class NewsScreen {
 
           this.images = images;
         } else {
-          let alert = Alert.create({
+          let alert = this.alert.create({
             title: 'Ошибка!',
             subTitle: data.error,
             buttons: ['OK']
           });
 
-          this.nav.present(alert);
+          alert.present(alert);
         }
       });
   }

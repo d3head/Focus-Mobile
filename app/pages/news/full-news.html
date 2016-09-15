@@ -13,18 +13,13 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>-->
   <ion-card full-width>
-    <ion-item>
-      <ion-avatar item-left *ngIf="item.user">
-        <img *ngIf="item.user.profile.avatar" src="http://api.gofocus.ru/img/170/{{item.user.profile.avatar}}">
-        <img *ngIf="!item.user.profile.avatar" src="images/No-Image-Icon_medium.png">
-      </ion-avatar>
-      <ion-avatar item-left *ngIf="!item.user">
-        <img *ngIf="item.user_profile.avatar" src="http://api.gofocus.ru/img/170/{{item.user_profile.avatar}}">
+    <ion-item tappable (click)="openProfile(item.user_id)">
+      <ion-avatar item-left>
+        <img *ngIf="item.user_profile.avatar" src="http://dev.gofocus.ru/img/170/{{item.user_profile.avatar}}">
         <img *ngIf="!item.user_profile.avatar" src="images/No-Image-Icon_medium.png">
       </ion-avatar>
-      <h2 *ngIf="item.user">{{item.user.profile.name}} {{item.user.profile.soname}}</h2>
-      <h2 *ngIf="!item.user">{{item.user_profile.name}} {{item.user_profile.soname}}</h2>
-      <p>{{item.created_at | amTimeAgo}}</p>
+      <h2>{{item.user_profile.name}} {{item.user_profile.soname}}</h2>
+      <p>{{item.date | amTimeAgo}}</p>
     </ion-item>
 
     <ion-segment padding [(ngModel)]="postMode" dark post-mode>
@@ -54,10 +49,10 @@
           <div class="slider" *ngIf="item.reply.images">
             <div *ngFor="let img of item.reply.images; let index = index;">
               <div *ngIf="index === 0" class="slider-item first">
-                <img src="http://api.gofocus.ru/img-full/{{img}}">
+                <img src="http://dev.gofocus.ru/img-full/{{img}}">
               </div>
               <div *ngIf="index !== 0" class="slider-item">
-                <img src="http://api.gofocus.ru/img-full/{{img}}">
+                <img src="http://dev.gofocus.ru/img-full/{{img}}">
               </div>
             </div>
           </div>
@@ -75,10 +70,10 @@
           <div class="slider" *ngIf="target.images">
             <div *ngFor="let img of target.images; let index = index;">
               <div *ngIf="index === 0" class="slider-item first">
-                <img src="http://api.gofocus.ru/img-full/{{img}}">
+                <img src="http://dev.gofocus.ru/img-full/{{img}}">
               </div>
               <div *ngIf="index !== 0" class="slider-item">
-                <img src="http://api.gofocus.ru/img-full/{{img}}">
+                <img src="http://dev.gofocus.ru/img-full/{{img}}">
               </div>
             </div>
           </div>
@@ -110,11 +105,11 @@
         <ion-card-content>
           <ion-list>
             <div *ngFor="let routine of item.routines; let rid = index;">
-              <ion-item *ngIf="routine.done">
-                <h2><ion-badge [style.background-color]="routine.routine[0].color">+1</ion-badge>{{routine.routine[0].name}}</h2>
+              <ion-item>
+                <h2><ion-badge [style.background-color]="routine.routine.color" *ngIf="routine.done">+1</ion-badge>{{routine.routine.name}}</h2>
 
                 <ion-note item-right>
-                  {{ routine.routine[0].done_routine_reports.length }} из {{ routine.routine[0].count }}
+                  {{ routine.routine.done_routine_reports.length }} из {{ routine.routine.count }}
                 </ion-note>
               </ion-item>
             </div>

@@ -1,9 +1,11 @@
-<ion-header>
+<ion-header class="opaque">
   <ion-navbar light>
     <button menuToggle>
       <ion-icon name="menu"></ion-icon>
     </button>
-    <ion-title>Отчет</ion-title>
+
+    <ion-title *ngIf="!editMode">Отчет</ion-title>
+    <ion-title *ngIf="editMode">Мои цели</ion-title>
 
     <ion-buttons end>
       <button (click)="showPopover($event)">
@@ -17,93 +19,7 @@
   <ion-icon name="add"></ion-icon>
 </button>
 
-<ion-content id="goals-content">
-  <ion-list *ngIf="targets" class="list">
-    <ion-item tappable (click)="expandGoal(0)" class="heading">
-      <ion-icon *ngIf="targets.reply.reply.day_conclusion && targets.reply.reply.description" name="checkmark-circle" green class="target-complete"></ion-icon>
-      Вывод дня
-      <ion-badge [style.background-color]="dayStatus.color" style="color:#000;font-weight: 400;">{{dayStatus.text}}</ion-badge>
-
-      <ion-icon item-right name="arrow-down" *ngIf="!expandedGoal[0].visible"></ion-icon>
-      <ion-icon item-right name="arrow-up" *ngIf="expandedGoal[0].visible"></ion-icon>
-    </ion-item>
-
-    <div class="expandedGoal day {{expandedGoal[0].visible ? 'active': ''}}">
-      <ion-item>
-        <ion-label stacked>Главный вывод дня</ion-label>
-        <ion-input type="text" [(ngModel)]="targets.reply.reply.day_conclusion" (ngModelChange)="calcProgress()"></ion-input>
-      </ion-item>
-
-      <ion-item>
-        <ion-label stacked>Подробнее</ion-label>
-        <ion-textarea [(ngModel)]="targets.reply.reply.description" (ngModelChange)="calcProgress()"></ion-textarea>
-      </ion-item>
-
-      <ion-item>
-        <ion-label>Продуктивно</ion-label>
-        <ion-checkbox primary [(ngModel)]="targets.reply.reply.work" (ngModelChange)="updateDayStatus()"></ion-checkbox>
-      </ion-item>
-
-      <ion-item>
-        <ion-label>Отдохнул</ion-label>
-        <ion-checkbox yellow [(ngModel)]="targets.reply.reply.relax" (ngModelChange)="updateDayStatus()"></ion-checkbox>
-      </ion-item>
-
-      <ion-item no-border>
-        <div *ngIf="photos[0]">
-          <ion-scroll scrollX="true" *ngIf="photos[0].length > 0">
-            <div class="photos">
-              <img *ngFor="let img of photos[0];let $index = index; trackBy:$index" src="http://api.gofocus.ru/img/170/{{img}}" tappable (click)="photosAction(0, $index)"/>
-            </div>
-          </ion-scroll>
-        </div>
-        <button dark outline (click)="attachImages(0)"><ion-icon name="attach"></ion-icon>Прикрепить фотографию</button>
-      </ion-item>
-    </div>
-
-    <div *ngIf="targets">
-      <div *ngFor="let item of targets.target_reports.target_reports; let $index = index">
-        <ion-item tappable (click)="expandGoal($index+1)" class="heading">
-          <ion-icon *ngIf="item.comment" name="checkmark-circle" green class="target-complete"></ion-icon>
-          {{item.target.name}}
-
-          <ion-icon item-right name="arrow-down" *ngIf="!expandedGoal[$index+1].visible"></ion-icon>
-          <ion-icon item-right name="arrow-up" *ngIf="expandedGoal[$index+1].visible"></ion-icon>
-        </ion-item>
-
-        <div class="expandedGoal {{expandedGoal[$index+1].visible ? 'active': ''}}">
-          <ion-item>
-            <ion-label stacked>Подробнее</ion-label>
-            <ion-textarea [(ngModel)]="item.comment" (ngModelChange)="calcProgress()"></ion-textarea>
-          </ion-item>
-
-          <ion-item no-border>
-            <div *ngIf="photos[parseInt($index)+1]">
-              <ion-scroll scrollX="true" *ngIf="photos[parseInt($index)+1].length > 0">
-                <div class="photos">
-                  <img *ngFor="let img of photos[parseInt($index)+1];let $iindex = index; trackBy:$iindex" src="http://api.gofocus.ru/img/170/{{img}}" tappable (click)="photosAction(parseInt($index)+1, $iindex)"/>
-                </div>
-              </ion-scroll>
-            </div>
-            <button dark outline (click)="attachImages(parseInt($index)+1)"><ion-icon name="attach"></ion-icon>Прикрепить фотографию</button>
-          </ion-item>
-        </div>
-      </div>
-    </div>
-  </ion-list>
-
-  <div padding *ngIf="progress <= 90">
-    Чтобы отправить отчет, необходимо заполнить все поля.
-  </div>
-
-  <div class="report-btns" padding>
-    <button primary outline (click)="saveReport()">Сохранить</button>
-
-    <button primary (click)="publishReport()" [disabled]="disableSend">Опубликовать</button>
-  </div>
-</ion-content>
-
-<ion-grid class="progress-bar goals-bar fixed">
+<ion-grid class="progress-bar goals-bar fixed" *ngIf="!editMode">
   <ion-row>
     <ion-col width-30>Отчет заполнен на {{progress}}%</ion-col>
   </ion-row>
@@ -112,3 +28,138 @@
     <ion-col><div class="progress"><div class="bar" [ngStyle]="{'width': progress + '%'}"></div></div></ion-col>
   </ion-row>
 </ion-grid>
+
+<ion-content fullscreen id="goals-content">
+  <div *ngIf="!editMode">
+    <form>
+      <ion-list *ngIf="targets" class="list">
+        <ion-item tappable (click)="expandGoal(0)" class="heading">
+          <ion-icon *ngIf="targets.reply.reply.day_conclusion && targets.reply.reply.description" name="checkmark-circle" green class="target-complete"></ion-icon>
+          Вывод дня
+          <ion-badge [style.background-color]="dayStatus.color" style="color:#000;font-weight: 400;">{{dayStatus.text}}</ion-badge>
+
+          <ion-icon item-right name="arrow-down" *ngIf="!expandedGoal[0].visible"></ion-icon>
+          <ion-icon item-right name="arrow-up" *ngIf="expandedGoal[0].visible"></ion-icon>
+        </ion-item>
+
+        <div class="expandedGoal day {{expandedGoal[0].visible ? 'active': ''}}">
+          <ion-item>
+            <ion-label stacked>Главный вывод дня</ion-label>
+            <ion-input type="text" name="day_conclusion" [(ngModel)]="targets.reply.reply.day_conclusion" (ngModelChange)="calcProgress()" [disabled]="targets.reply.reply.post && targets.reply.reply.post.published"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label stacked>Подробнее</ion-label>
+            <ion-textarea name="description" [(ngModel)]="targets.reply.reply.description" (ngModelChange)="calcProgress()" [disabled]="targets.reply.reply.post && targets.reply.reply.post.published"></ion-textarea>
+          </ion-item>
+
+          <ion-item *ngIf="targets.reply.reply.post && !targets.reply.reply.post.published">
+            <ion-label>Продуктивно</ion-label>
+            <ion-checkbox primary [(ngModel)]="targets.reply.reply.work" (ngModelChange)="updateDayStatus()"></ion-checkbox>
+          </ion-item>
+
+          <ion-item *ngIf="targets.reply.reply.post && !targets.reply.reply.post.published">
+            <ion-label>Отдохнул</ion-label>
+            <ion-checkbox yellow [(ngModel)]="targets.reply.reply.relax" (ngModelChange)="updateDayStatus()"></ion-checkbox>
+          </ion-item>
+
+          <ion-item no-border>
+            <div *ngIf="photos[0]">
+              <ion-scroll scrollX="true" *ngIf="photos[0].length > 0">
+                <div class="photos">
+                  <img *ngFor="let img of photos[0];let $index = index; trackBy:$index" src="http://dev.gofocus.ru/img/170/{{img}}" tappable (click)="photosAction(0, $index)"/>
+                </div>
+              </ion-scroll>
+            </div>
+            <button dark outline (click)="attachImages(0)" *ngIf="!targets.reply.reply.post"><ion-icon name="attach"></ion-icon>Прикрепить фотографию</button>
+            <button dark outline (click)="attachImages(0)" *ngIf="targets.reply.reply.post && !targets.reply.reply.post.published"><ion-icon name="attach"></ion-icon>Прикрепить фотографию</button>
+          </ion-item>
+        </div>
+
+        <div *ngIf="targets">
+          <div *ngFor="let item of targets.target_reports.target_reports; let $index = index">
+            <ion-item tappable (click)="expandGoal($index+1)" class="heading">
+              <ion-icon *ngIf="item.comment" name="checkmark-circle" green class="target-complete"></ion-icon>
+              {{item.target.name}}
+
+              <ion-icon item-right name="arrow-down" *ngIf="!expandedGoal[$index+1].visible"></ion-icon>
+              <ion-icon item-right name="arrow-up" *ngIf="expandedGoal[$index+1].visible"></ion-icon>
+            </ion-item>
+
+            <div class="expandedGoal {{expandedGoal[$index+1].visible ? 'active': ''}}">
+              <ion-item>
+                <ion-label stacked>Подробнее</ion-label>
+                <ion-textarea name="comment_{{$index+1}}" [(ngModel)]="item.comment" (ngModelChange)="calcProgress()" [disabled]="targets.reply.reply.post && targets.reply.reply.post.published"></ion-textarea>
+              </ion-item>
+
+              <ion-item no-border>
+                <div *ngIf="photos[parseInt($index)+1]">
+                  <ion-scroll scrollX="true" *ngIf="photos[parseInt($index)+1].length > 0">
+                    <div class="photos">
+                      <img *ngFor="let img of photos[parseInt($index)+1];let $iindex = index; trackBy:$iindex" src="http://dev.gofocus.ru/img/170/{{img}}" tappable (click)="photosAction(parseInt($index)+1, $iindex)"/>
+                    </div>
+                  </ion-scroll>
+                </div>
+                <button dark outline (click)="attachImages(parseInt($index)+1)" *ngIf="!targets.reply.reply.post"><ion-icon name="attach"></ion-icon>Прикрепить фотографию</button>
+                <button dark outline (click)="attachImages(parseInt($index)+1)" *ngIf="targets.reply.reply.post && !targets.reply.reply.post.published"><ion-icon name="attach"></ion-icon>Прикрепить фотографию</button>
+              </ion-item>
+            </div>
+          </div>
+        </div>
+      </ion-list>
+    </form>
+
+    <div *ngIf="targets">
+      <div padding *ngIf="progress <= 90 && !targets.reply.reply.post">
+        Чтобы отправить отчет, необходимо заполнить все поля.
+      </div>
+
+      <div padding *ngIf="progress <= 90 && targets.reply.reply.post && !targets.reply.reply.post.published">
+        Чтобы отправить отчет, необходимо заполнить все поля.
+      </div>
+
+      <div padding text-center *ngIf="targets.reply.reply.post && targets.reply.reply.post.published" class="published">
+        <div text-center><ion-icon name="checkmark-circle-outline"></ion-icon></div>
+        Пост опубликован.
+      </div>
+
+      <div class="report-btns" padding *ngIf="!targets.reply.reply.post">
+        <button primary outline (click)="saveReport()" [disabled]="disableSave">
+          <ion-spinner *ngIf="disableSave" name="dots"></ion-spinner>
+          <span *ngIf="!disableSave">Сохранить</span>
+        </button>
+
+        <button primary (click)="publishReport()" [disabled]="disableSend">
+          Опубликовать
+        </button>
+      </div>
+
+      <div class="report-btns" padding *ngIf="targets.reply.reply.post && !targets.reply.reply.post.published">
+        <button primary outline (click)="saveReport()" [disabled]="disableSave">
+          <ion-spinner *ngIf="disableSave" name="dots"></ion-spinner>
+          <span *ngIf="!disableSave">Сохранить</span>
+        </button>
+
+        <button primary (click)="publishReport()" [disabled]="disableSend">
+          Опубликовать
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="editMode">
+    <ion-list class="editMode" *ngIf="targetList">
+      <ion-item *ngFor="let item of targetList; let $index = index" tappable (click)="editGoal(item)">
+        <small>{{$index + 1}}.</small> {{item.name}}
+
+        <ion-badge secondary item-right *ngIf="item.status === 1">Выполнено</ion-badge>
+
+        <ion-badge item-right *ngIf="item.status === 2">Заморожено</ion-badge>
+      </ion-item>
+    </ion-list>
+
+    <div text-center padding>
+      <button primary (click)="editMode = !editMode">Готово</button>
+    </div>
+  </div>
+</ion-content>

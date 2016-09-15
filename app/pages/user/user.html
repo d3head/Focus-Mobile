@@ -10,20 +10,26 @@
 
 <ion-content>
   <ion-card full-width class="profile-card">
-    <ion-item>
+    <ion-item *ngIf="user.name">
       <ion-avatar item-left class="avatar">
-        <img width="100px" *ngIf="user.avatar" src="http://api.gofocus.ru/img/170/{{user.avatar}}">
+        <img width="100px" *ngIf="user.avatar" src="http://dev.gofocus.ru/img/170/{{user.avatar}}">
         <img width="100px "*ngIf="!user.avatar" src="images/No-Image-Icon_medium.png">
       </ion-avatar>
       <h2>{{user.name}} {{user.soname}}</h2>
       <p>{{user.city}}</p>
     </ion-item>
 
-    <ion-item *ngIf="relations !== 4">
-      <button *ngIf="relations === 0" tappable dark full (click)="sendRequest(user.user_id)">Подписаться</button>
-      <button *ngIf="relations === 1" tappable dark full (click)="acceptRequest(user.user_id)">Принять запрос</button>
-      <button *ngIf="relations === 2 || relations === 3" tappable dark full (click)="removeFriend(user.user_id)">Отписаться</button>
-    </ion-item>
+    <div [hidden]="!relations || relations == 4" >
+      <ion-item>
+        <button *ngIf="relations === 0" tappable dark full (click)="sendRequest(user.user_id)">Подписаться</button>
+        <button *ngIf="relations === 1" tappable dark full (click)="acceptRequest(user.user_id)">Принять запрос</button>
+        <button *ngIf="relations === 2 || relations === 3" tappable dark full (click)="removeFriend(user.user_id)">Отписаться</button>
+      </ion-item>
+    </div>
+
+    <div text-center padding *ngIf="!user.name">
+      <ion-spinner></ion-spinner>
+    </div>
 
     <ion-scroll scrollX="true" class="scrollable-segment">
       <ion-segment [(ngModel)]="displayMode" dark class="profileModes">
@@ -35,7 +41,7 @@
           <span *ngIf="user.counters">{{user.counters.targets_count}}</span>
           целей
         </ion-segment-button>
-        <ion-segment-button value="2" (click)="loadRoutines()">
+        <ion-segment-button value="2" (click)="getRoutines(_id)">
           <span *ngIf="user.counters">{{user.counters.routines_count}}</span>
           привычек
         </ion-segment-button>
@@ -55,12 +61,17 @@
 
   <div [ngSwitch]="displayMode">
     <div *ngSwitchCase="'0'">
-      <div *ngIf="posts.data">
+      <div text-center padding *ngIf="posts && posts.data && posts.data.length < 1">
+        <ion-spinner></ion-spinner>
+      </div>
+      <div *ngIf="posts && posts.data && posts.data.length > 0">
+
+
         <div *ngFor="let item of posts.data; let i = index;">
           <ion-card full-width>
             <ion-item>
               <ion-avatar item-left>
-                <img *ngIf="item.user_profile.avatar" src="http://api.gofocus.ru/img/170/{{item.user_profile.avatar}}">
+                <img *ngIf="item.user_profile.avatar" src="http://dev.gofocus.ru/img/170/{{item.user_profile.avatar}}">
                 <img *ngIf="!item.user_profile.avatar" src="images/No-Image-Icon_medium.png">
               </ion-avatar>
               <h2>{{item.user_profile.name}} {{item.user_profile.soname}}</h2>
@@ -93,15 +104,15 @@
                 <div class="slider" *ngIf="images">
                   <div *ngFor="let img of images[i]; let index = index;">
                     <div *ngIf="index === 0" class="slider-item first">
-                      <img src="http://api.gofocus.ru/img-full/{{img}}">
+                      <ion-img src="http://dev.gofocus.ru/img-full/{{img}}"></ion-img>
                     </div>
                     <div *ngIf="index !== 0" class="slider-item">
-                      <img src="http://api.gofocus.ru/img-full/{{img}}">
+                      <ion-img src="http://dev.gofocus.ru/img-full/{{img}}"></ion-img>
                     </div>
                   </div>
                 </div>
 
-                <ion-card-content *ngIf="item.post_state.is_dead_post">
+                <ion-card-content *ngIf="item.type == 1">
                   <ion-card-title>
                     Игрок потерял фокус
                   </ion-card-title>
@@ -133,10 +144,10 @@
                   <ion-list>
                     <div *ngFor="let routine of item.routines; let rid = index;">
                       <ion-item *ngIf="routine.done">
-                        <h2><ion-badge [style.background-color]="routine.routine[0].color">+1</ion-badge>{{routine.routine[0].name}}</h2>
+                        <h2><ion-badge [style.background-color]="routine.routine.color">+1</ion-badge>{{routine.routine.name}}</h2>
 
                         <ion-note item-right>
-                          {{ routine.routine[0].done_routine_reports.length }} из {{ routine.routine[0].count }}
+                          {{ routine.routine.done_routine_reports.length }} из {{ routine.routine.count }}
                         </ion-note>
                       </ion-item>
                     </div>
@@ -149,18 +160,18 @@
               <ion-col>
                 <button dark clear small (click)="likePost(item)">
                   <ion-icon name="heart" [ngClass]="{'liked': item.user_liked}"></ion-icon>
-                  <div>{{item.likes.length || '0'}}</div>
+                  <div>{{item.likes || '0'}}</div>
                 </button>
               </ion-col>
 
-              <ion-col text-center *ngIf="!item.post_state.is_dead_post">
+              <ion-col text-center *ngIf="item.type != 1">
                 <button dark clear small (click)="openPost(item, true)">
                   <ion-icon name="text"></ion-icon>
                   <div>{{item.comments_count}}</div>
                 </button>
               </ion-col>
 
-              <ion-col right text-right *ngIf="!item.post_state.is_dead_post">
+              <ion-col right text-right *ngIf="item.type != 1">
                 <button dark clear small (click)="openPost(item, false)">
                   <ion-icon name="arrow-forward"></ion-icon>
                 </button>
@@ -170,7 +181,7 @@
           </ion-card>
         </div>
 
-        <ion-infinite-scroll *ngIf="posts.next_page_url" (ionInfinite)="loadMore(posts.next_page_url)">
+        <ion-infinite-scroll *ngIf="posts.page < (posts.total / posts.per_page)" (ionInfinite)="loadMore(posts.page + 1, $event)">
          <ion-infinite-scroll-content></ion-infinite-scroll-content>
        </ion-infinite-scroll>
       </div>
@@ -178,9 +189,12 @@
 
     <div *ngSwitchCase="'1'">
       <div *ngIf="targets">
+        <div text-center padding *ngIf="targets.length < 1">
+          <ion-spinner></ion-spinner>
+        </div>
         <div *ngFor="let item of targets; let i = index;">
           <ion-card>
-            <img *ngIf="item.image_path" src="//api.gofocus.ru/img/170/{{item.image_path}}"/>
+            <ion-img *ngIf="item.image_path" src="//dev.gofocus.ru/img/170/{{item.image_path}}"></ion-img>
             <ion-card-content>
               <ion-card-title>
                 {{item.name}}
@@ -195,7 +209,22 @@
     </div>
 
     <div *ngSwitchCase="'2'">
-      Routines
+      <div *ngIf="routines">
+        <div text-center padding *ngIf="routines.length < 1">
+          <ion-spinner></ion-spinner>
+        </div>
+        <div *ngFor="let item of routines; let i = index;">
+          <ion-card>
+            <ion-card-content>
+              <ion-card-title>
+                {{item.name}}
+              </ion-card-title>
+
+              <chart [labels]="charts[item.id].labels" [data]="charts[item.id].data" type="line" height="300px"></chart>
+            </ion-card-content>
+          </ion-card>
+        </div>
+      </div>
     </div>
   </div>
 </ion-content>

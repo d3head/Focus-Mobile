@@ -1,0 +1,98 @@
+<ion-header>
+  <ion-navbar light>
+    <button menuToggle>
+      <ion-icon name="menu">Назад</ion-icon>
+    </button>
+    <ion-title>Регистрация</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+  <form (onSubmit)="onSubmit()">
+    <ion-list>
+      <ion-item>
+          <ion-input type="text" placeholder="Имя" value="" name="name" [(ngModel)]="name"></ion-input>
+      </ion-item>
+
+      <ion-item *ngIf="empty_name">
+        <div class="warn">
+            Имя не может быть пустым.
+        </div>
+      </ion-item>
+
+      <ion-item *ngIf="error.name">
+        <div class="warn">
+            {{error.name[0]}}
+        </div>
+      </ion-item>
+
+      <ion-item>
+          <ion-input type="tel" placeholder="Телефон" value="" name="phone" (input)="checkPhone()" [(ngModel)]="phone"></ion-input>
+      </ion-item>
+
+      <ion-item *ngIf="empty_phone">
+        <div class="warn">
+            Телефон не может быть пустым.
+        </div>
+      </ion-item>
+
+      <ion-item *ngIf="error.phone">
+        <div class="warn">
+            {{error.phone[0]}}
+        </div>
+      </ion-item>
+
+      <ion-item>
+          <ion-input type="email" placeholder="Эл. Почта" value="" name="email" [(ngModel)]="email"></ion-input>
+      </ion-item>
+
+      <ion-item *ngIf="wrong_email">
+        <div class="warn">
+            Неверный E-Mail.
+        </div>
+      </ion-item>
+
+      <ion-item *ngIf="error.email">
+        <div class="warn">
+            {{error.email[0]}}
+        </div>
+      </ion-item>
+
+      <ion-item>
+          <ion-input type="password" placeholder="Пароль" value="" name="password" [(ngModel)]="password"></ion-input>
+      </ion-item>
+
+      <ion-item *ngIf="empty_password">
+        <div class="warn">
+            Пароль не может быть пустым.
+        </div>
+      </ion-item>
+
+      <ion-item *ngIf="error.password">
+        <div class="warn">
+            {{error.password[0]}}
+        </div>
+      </ion-item>
+
+      <ion-item>
+          <ion-input type="password" placeholder="Повторите пароль" value="" name="password_confirmation" [(ngModel)]="password_confirmation"></ion-input>
+      </ion-item>
+
+      <ion-item *ngIf="error.password_confirmation">
+        <div class="warn">
+            {{error.password_confirmation[0]}}
+        </div>
+      </ion-item>
+
+      <ion-item *ngIf="passwords_different">
+        <div class="warn">
+            Пароли не совпадают.
+        </div>
+      </ion-item>
+    </ion-list>
+
+    <div padding>
+      <button full-width primary type="submit" class="custom-button" (click)="onSubmit()" [disabled]="disableCreate">Зарегистрироваться</button>
+    </div>
+  </form>
+</ion-content>

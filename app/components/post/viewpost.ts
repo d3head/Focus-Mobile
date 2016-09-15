@@ -1,10 +1,11 @@
 import {Component, Input, Output, EventEmitter, ViewChild} from '@angular/core';
 import {DataService} from '../../services/DataService';
-import {Slides, Nav, Popover, NavParams, Alert, Modal, ViewController, Loading, Content, ActionSheet} from 'ionic-angular';
+import {Slides, Nav, Popover, NavParams, AlertController, Modal, ViewController, Loading, Content, ActionSheetController} from 'ionic-angular';
 import {Camera} from 'ionic-native';
 import * as moment from 'moment';
 import 'moment/locale/ru';
 import {DateFormatPipe, TimeAgoPipe} from 'angular2-moment';
+import {UserScreen} from '../../pages/user/user';
 
 @Component({
   templateUrl: 'build/pages/news/full-news.html',
@@ -21,12 +22,14 @@ export class ViewPost {
   constructor(
     private ds: DataService,
     private nav: Nav,
-    private _navParams: NavParams
+    private alert: AlertController,
+    private _navParams: NavParams,
+    private actionSheet: ActionSheetController
   ) {
-    console.log(this);
+    console.log(JSON.stringify(this._navParams.data.comment));
     this.item = this._navParams.data.item;
     this.comments = [];
-    this.getComments(this.item.id);
+    this.getComments(this.item.id, this._navParams.data.comment);
     this.postMode = '0';
   }
 
@@ -39,16 +42,16 @@ export class ViewPost {
     })
       .subscribe(data => {
         if(!data.error) {
-          console.log(item);
-          item.likes = data.result.likes;
+          item.likes = data.result.likes.length;
+          item.user_liked = data.result.your_like;
         } else {
-          let alert = Alert.create({
+          let alert = this.alert.create({
             title: 'Ошибка!',
             subTitle: data.error,
             buttons: ['OK']
           });
 
-          this.nav.present(alert);
+          alert.present(alert);
         }
       });
   }
@@ -73,13 +76,13 @@ export class ViewPost {
 
           }, 100);
         } else {
-          let alert = Alert.create({
+          let alert = this.alert.create({
             title: 'Ошибка!',
             subTitle: data.error,
             buttons: ['OK']
           });
 
-          this.nav.present(alert);
+          alert.present(alert);
         }
       });
   }
@@ -103,7 +106,7 @@ export class ViewPost {
         }
       };*/
 
-  getComments(id) {
+  getComments(id, scroll) {
     this.ds.get('social/api/v2/comment/get', {
       en_type: 1,
       en_id: id
@@ -112,25 +115,30 @@ export class ViewPost {
 
         if(!data.error) {
           this.comments = data.result;
+          if(scroll) {
+            setTimeout(() => {
+              this.content.scrollToBottom(200);
 
-          setTimeout(() => {
-            this.content.scrollToBottom(200);
-
-          }, 100);
+            }, 100);
+          }
         } else {
-          let alert = Alert.create({
+          let alert = this.alert.create({
             title: 'Ошибка!',
             subTitle: data.error,
             buttons: ['OK']
           });
 
-          this.nav.present(alert);
+          alert.present(alert);
         }
       });
   }
 
+  openProfile(id) {
+    this.nav.push(UserScreen, {id: id});
+  }
+
   showActions(item) {
-    let actionSheet = ActionSheet.create({
+    let actionSheet = this.actionSheet.create({
       buttons: [
         {
           text: 'Ответить',
@@ -149,6 +157,6 @@ export class ViewPost {
       ]
     });
 
-    this.nav.present(actionSheet);
+    actionSheet.present(actionSheet);
   }
 }

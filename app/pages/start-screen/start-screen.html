@@ -17,22 +17,22 @@
 <div class="focus-logo"><svg class="icon"><use class="logo" xlink:href="#logotype"></use></svg></div>
 
 <div class="start-buttons">
-  <button orange (click)="openPage('LoginScreen')">Вход</button>
-  <button orange>Регистрация</button>
+  <button primary outline (click)="login()">Вход</button>
+  <button primary (click)="signup()">Регистрация</button>
 </div>
 
 <ion-slides pager [options]="mySlideOptions">
 
   <ion-slide class="slide" style="background: #FDE3A7">
-    <h2>1</h2>
+    <p>Вы ставите себе цель, прописываете план и с помощью онлайн инструментов достигаете ее вместе со всеми друзьями</p>
   </ion-slide>
 
   <ion-slide class="slide" style="background: #C8F7C5">
-    <h2>Фича фокуса 2</h2>
+    <p>Ты полностью изменишь свой взгляд на продуктивность</p>
   </ion-slide>
 
   <ion-slide class="slide" style="background: #ECECEC">
-    <h2>Фича фокуса 3</h2>
+    <p>Прогресс по всем инструментам собирается в едином отчете за день. Он будет доступен для ваших подписчиков, которые смогут прокомментировать или поддержать вас лайками.</p>
   </ion-slide>
 
 </ion-slides>

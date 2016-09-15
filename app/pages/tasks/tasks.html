@@ -1,4 +1,4 @@
-<ion-header>
+<ion-header class="opaque">
   <ion-navbar light>
     <button menuToggle>
       <ion-icon name="menu"></ion-icon>
@@ -29,14 +29,17 @@
   <ion-icon name="add"></ion-icon>
 </button>
 
-<ion-content>
-
+<ion-content full-screen>
   <!--<ion-refresher (ionRefresh)="doRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>-->
 
-  <div [ngSwitch]="displayMode">
+  <div [ngSwitch]="displayMode" *ngIf="allTasks">
     <div *ngSwitchCase="'0'">
+      <div text-center padding *ngIf="!allTasks.all_tasks">
+        <ion-spinner></ion-spinner>
+      </div>
+
       <ion-list *ngIf="allTasks.all_tasks">
           <ion-list-header>
             Обязательные задачи
@@ -58,7 +61,7 @@
           </ion-grid>
 
           <div *ngIf="allTasks.all_tasks[today]">
-            <div *ngIf="allTasks.all_tasks[today]['1'].length > 0">
+            <div *ngIf="allTasks.all_tasks[today]['1'] && allTasks.all_tasks[today]['1'].length > 0">
               <div *ngFor="let item of allTasks.all_tasks[today]['1'] | orderBy: ['created_at']">
                 <ion-item-sliding *ngIf="!item.done" #slidingItem>
                   <ion-item-options side="left" (ionSwipe)="doneTask(item, slidingItem)">
@@ -73,11 +76,12 @@
                   </ion-item>
 
                   <ion-item-options side="right" (ionSwipe)="sendTomorrow(item)">
-                    <button expandable swipeable light (click)="sendTomorrow(item)">
-                      <ion-icon name="return-right"></ion-icon>
-                    </button>
                     <button danger (click)="removeTask(item)">
                       <ion-icon name="close"></ion-icon>
+                    </button>
+
+                    <button expandable swipeable light (click)="sendTomorrow(item)">
+                      <ion-icon name="return-right"></ion-icon>
                     </button>
                   </ion-item-options>
                 </ion-item-sliding>
@@ -114,7 +118,7 @@
 
 
         <div *ngIf="allTasks.all_tasks[today]">
-          <div *ngIf="allTasks.all_tasks[today]['2'].length > 0">
+          <div *ngIf="allTasks.all_tasks[today]['2'] && allTasks.all_tasks[today]['2'].length > 0">
             <div *ngFor="let item of allTasks.all_tasks[today]['2'] | orderBy: ['created_at']">
               <ion-item-sliding *ngIf="!item.done" #slidingItem>
                 <ion-item-options side="left" (ionSwipe)="doneTask(item, slidingItem)">
@@ -129,11 +133,12 @@
                 </ion-item>
 
                 <ion-item-options side="right" (ionSwipe)="sendTomorrow(item)">
-                  <button expandable swipeable light (click)="sendTomorrow(item)">
-                    <ion-icon name="return-right"></ion-icon>
-                  </button>
                   <button danger (click)="removeTask(item)">
                     <ion-icon name="close"></ion-icon>
+                  </button>
+
+                  <button expandable swipeable light (click)="sendTomorrow(item)">
+                    <ion-icon name="return-right"></ion-icon>
                   </button>
                 </ion-item-options>
               </ion-item-sliding>
@@ -148,13 +153,13 @@
         </div>
 
         <br>
-        <div *ngIf="allTasks.done_tasks > 0">
+        <div *ngIf="allTasks.done_tasks && allTasks.done_tasks.length > 0">
           <ion-list-header>
             Завершенные задачи
           </ion-list-header>
 
           <div *ngIf="allTasks.all_tasks[today]">
-            <div *ngIf="allTasks.all_tasks[today]['1'].length > 0">
+            <div *ngIf="allTasks.all_tasks[today]['1'] && allTasks.all_tasks[today]['1'].length > 0">
               <div *ngFor="let item of allTasks.all_tasks[today]['1'] | orderBy: ['created_at']">
                 <ion-item-sliding *ngIf="item.done" #slidingItem>
                   <ion-item-options side="left" (ionSwipe)="doneTask(item, slidingItem)">
@@ -171,7 +176,7 @@
               </div>
             </div>
 
-            <div *ngIf="allTasks.all_tasks[today]['2'].length > 0">
+            <div *ngIf="allTasks.all_tasks[today]['2'] && allTasks.all_tasks[today]['2'].length > 0">
               <div *ngFor="let item of allTasks.all_tasks[today]['2'] | orderBy: ['created_at']">
                 <ion-item-sliding *ngIf="item.done" #slidingItem>
                   <ion-item-options side="left" (ionSwipe)="doneTask(item, slidingItem)">
@@ -195,7 +200,7 @@
     <div *ngSwitchCase="'1'">
       <ion-list *ngIf="allTasks.all_tasks">
         <div *ngFor="let key of keys();">
-          <div *ngIf="key && (allTasks.all_tasks[key]['1'].length > 0 || allTasks.all_tasks[key]['2'].length > 0)">
+          <div *ngIf="key && (allTasks.all_tasks[key]['1'] && allTasks.all_tasks[key]['1'].length > 0 || allTasks.all_tasks[key]['2'] && allTasks.all_tasks[key]['2'].length > 0)">
             <ion-list-header>
               <time>{{key | amDateFormat:'LL'}}</time>
             </ion-list-header>
@@ -204,7 +209,10 @@
               <div>
                 <ion-item-sliding *ngFor="let item of allTasks.all_tasks[key]['1'] | orderBy: ['created_at']" #slidingItem>
                   <ion-item-options side="left" (ionSwipe)="doneTask(item, slidingItem)">
-                    <button (click)="doneTask(item, slidingItem)" swipeable expandable favorite>
+                    <button *ngIf="item.done" (click)="doneTask(item, slidingItem)" swipeable expandable orange>
+                      <ion-icon name="undo"></ion-icon>
+                    </button>
+                    <button *ngIf="!item.done" (click)="doneTask(item, slidingItem)" swipeable expandable favorite>
                       <ion-icon name="checkmark"></ion-icon>
                     </button>
                   </ion-item-options>
@@ -216,22 +224,26 @@
                   </ion-item>
 
                   <ion-item-options side="right" (ionSwipe)="sendTomorrow(item)">
-                    <button expandable swipeable light (click)="sendTomorrow(item)">
-                      <ion-icon name="return-right"></ion-icon>
-                    </button>
                     <button danger (click)="removeTask(item)">
                       <ion-icon name="close"></ion-icon>
+                    </button>
+
+                    <button expandable swipeable light (click)="sendTomorrow(item)">
+                      <ion-icon name="return-right"></ion-icon>
                     </button>
                   </ion-item-options>
                 </ion-item-sliding>
               </div>
             </div>
 
-            <div *ngIf="allTasks.all_tasks[key]['2'].length > 0">
+            <div *ngIf="allTasks.all_tasks[key]['2'] && allTasks.all_tasks[key]['2'].length > 0">
               <div>
                 <ion-item-sliding *ngFor="let item of allTasks.all_tasks[key]['2'] | orderBy: ['created_at']" #slidingItem>
                   <ion-item-options side="left" (ionSwipe)="doneTask(item, slidingItem)">
-                    <button (click)="doneTask(item, slidingItem)" swipeable expandable favorite>
+                    <button *ngIf="item.done" (click)="doneTask(item, slidingItem)" swipeable expandable orange>
+                      <ion-icon name="undo"></ion-icon>
+                    </button>
+                    <button *ngIf="!item.done" (click)="doneTask(item, slidingItem)" swipeable expandable favorite>
                       <ion-icon name="checkmark"></ion-icon>
                     </button>
                   </ion-item-options>
@@ -243,11 +255,12 @@
                   </ion-item>
 
                   <ion-item-options side="right" (ionSwipe)="sendTomorrow(item)">
-                    <button expandable swipeable light (click)="sendTomorrow(item)">
-                      <ion-icon name="return-right"></ion-icon>
-                    </button>
                     <button danger (click)="removeTask(item)">
                       <ion-icon name="close"></ion-icon>
+                    </button>
+
+                    <button expandable swipeable light (click)="sendTomorrow(item)">
+                      <ion-icon name="return-right"></ion-icon>
                     </button>
                   </ion-item-options>
                 </ion-item-sliding>
@@ -276,11 +289,12 @@
             </ion-item>
 
             <ion-item-options side="right" (ionSwipe)="sendTomorrow(item)">
-              <button expandable swipeable light (click)="sendTomorrow(item)">
-                <ion-icon name="return-right"></ion-icon>
-              </button>
               <button danger (click)="removeTask(item)">
                 <ion-icon name="close"></ion-icon>
+              </button>
+
+              <button expandable swipeable light (click)="sendTomorrow(item)">
+                <ion-icon name="return-right"></ion-icon>
               </button>
             </ion-item-options>
           </ion-item-sliding>

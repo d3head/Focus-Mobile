@@ -1,17 +1,287 @@
 import {Component, Input, Output, EventEmitter, ViewChild, ElementRef} from '@angular/core';
 import {DataService} from '../../services/DataService';
-import {Slides, Nav, Content, Platform, Popover, NavParams, Alert, Modal, Loading, ViewController, ActionSheet, App} from 'ionic-angular';
-import {Camera} from 'ionic-native';
+import {Slides, Nav, Content, Platform, PopoverController, NavParams, AlertController, Events, Modal, LoadingController, ViewController, ActionSheetController, App} from 'ionic-angular';
+import {Camera, LocalNotifications} from 'ionic-native';
 import * as moment from 'moment';
 import 'moment/locale/ru';
 import {Observable} from "rxjs/Rx";
+
+@Component({
+  providers: [DataService],
+  template: `
+  <ion-header>
+    <ion-navbar light>
+      <button menuToggle>
+        <ion-icon name="menu">Назад</ion-icon>
+      </button>
+      <ion-title *ngIf="!_navParams.data.goal">
+        Добавить
+      </ion-title>
+
+      <ion-title *ngIf="_navParams.data.goal">
+        Изменить
+      </ion-title>
+    </ion-navbar>
+  </ion-header>
+
+  <ion-content>
+    <ion-list>
+      <ion-item>
+        <ion-input type="text" placeholder="Содержание" [(ngModel)]="addForm.name"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label stacked>Критерий выполнения</ion-label>
+        <ion-textarea [(ngModel)]="addForm.description"></ion-textarea>
+      </ion-item>
+    </ion-list>
+
+    <ion-list>
+      <ion-item>
+        <ion-label>Статус</ion-label>
+        <ion-select [(ngModel)]="addForm.status">
+          <ion-option value="0">Активна</ion-option>
+          <ion-option value="2">Заморожена</ion-option>
+          <ion-option value="1">Выполнена</ion-option>
+        </ion-select>
+      </ion-item>
+    </ion-list>
+
+    <div class="full-img-container" *ngIf="addForm.image_path">
+      <ion-img width="100%" src="//dev.gofocus.ru/img/thumbs/{{addForm.image_path}}"></ion-img>
+    </div>
+
+    <button dark full (click)="attachImages()" [disabled]="disableAttach"><ion-icon name="attach"></ion-icon>Прикрепить фотографию</button>
+
+    <button full (click)="createGoal()" *ngIf="!_navParams.data.goal" [disabled]="disableCreate">
+      <ion-spinner *ngIf="disableCreate" name="dots"></ion-spinner>
+      <span *ngIf="!disableCreate">Добавить</span>
+    </button>
+
+    <button full (click)="updateGoal()" *ngIf="_navParams.data.goal" [disabled]="disableUpdate">
+      <ion-spinner *ngIf="disableUpdate" name="dots"></ion-spinner>
+      <span *ngIf="!disableUpdate">Сохранить</span>
+    </button>
+  </ion-content>`
+})
+class MyModal {
+  addForm: any;
+  colors: any;
+  disableCreate: any;
+  disableUpdate: any;
+  disableAttach: any;
+
+  constructor(
+    private viewCtrl: ViewController,
+    private ds: DataService,
+    private nav: Nav,
+    private _navParams: NavParams,
+    public events: Events,
+    private alert: AlertController,
+    private loading: LoadingController,
+    private actionsheet: ActionSheetController) {
+      this.disableCreate = false;
+      this.disableUpdate = false;
+      this.disableAttach = false;
+
+      this.addForm = {
+        name: '',
+        description: '',
+        status: 0,
+        image_path: ''
+      };
+
+      if(this._navParams.data.goal) {
+        this.addForm = {
+          name: this._navParams.data.goal.name,
+          description: this._navParams.data.goal.description,
+          status: this._navParams.data.goal.status,
+          image_path: this._navParams.data.goal.image_path
+        };
+      }
+    }
+
+  createGoal() {
+    if(!this.disableCreate) {
+      this.disableCreate = true;
+      let form = {
+          name: this.addForm.name,
+          description: this.addForm.description,
+          status: this.addForm.status,
+          image_path: this.addForm.image_path
+        };
+
+      this.ds.post('core/api/v2/target/create-one', form)
+        .subscribe(data => {
+          if(!data.error) {
+            this.viewCtrl.dismiss({form: form});
+            this.events.publish('goals:update', {});
+          } else {
+            let alert = this.alert.create({
+              title: 'Ошибка!',
+              subTitle: data.error,
+              buttons: ['OK']
+            });
+            this.viewCtrl.dismiss();
+            alert.present(alert);
+          }
+        });
+    }
+  }
+
+  updateGoal() {
+    if(!this.disableUpdate) {
+      this.disableUpdate = true;
+
+      let form = {
+          id: this._navParams.data.goal.id,
+          name: this.addForm.name,
+          description: this.addForm.description,
+          status: this.addForm.status,
+          image_path: this.addForm.image_path,
+          weight: this._navParams.data.goal.weight
+        };
+
+      console.log(JSON.stringify(form));
+
+      this.ds.post('core/api/v2/target/update-one', form)
+        .subscribe(data => {
+          if(!data.error) {
+            this.viewCtrl.dismiss({form: form});
+            this.events.publish('goals:update', {});
+          } else {
+            let alert = this.alert.create({
+              title: 'Ошибка!',
+              subTitle: data.error,
+              buttons: ['OK']
+            });
+            this.viewCtrl.dismiss();
+            alert.present(alert);
+          }
+        });
+    }
+  }
+
+  attachImages(index) {
+    if(!this.disableAttach) {
+      this.disableAttach = true;
+      let actionSheet = this.actionsheet.create({
+        title: 'Загрузить фотографию',
+        buttons: [
+          {
+            text: 'Камера',
+            handler: () => {
+              this.disableAttach = false;
+
+              let loading = this.loading.create();
+
+              loading.present(loading);
+
+              let options = {
+                quality: 80,
+                destinationType: Camera.DestinationType.DATA_URL,
+                sourceType: Camera.PictureSourceType.CAMERA,
+                allowEdit: true,
+                encodingType: Camera.EncodingType.JPEG,
+                saveToPhotoAlbum: false,
+                correctOrientation: true
+              };
+
+              navigator.camera.getPicture((imageData) => {
+                this.ds.post('core/api/v2/file/upload-base64', {
+                  image: "data:image/jpeg;base64," + imageData
+                })
+                  .subscribe(data => {
+                    loading.dismiss();
+                    if(!data.error) {
+                      this.addForm.image_path = data.result;
+                    } else {
+                      let alert = this.alert.create({
+                        title: 'Ошибка!',
+                        subTitle: data.error,
+                        buttons: ['OK']
+                      });
+
+                      alert.present(alert);
+                    }
+                  });
+              }, (error) => {
+                loading.dismiss();
+              }, options);
+            }
+          },{
+            text: 'Галерея',
+            handler: () => {
+              this.disableAttach = false;
+
+              let loading = this.loading.create();
+
+              loading.present(loading);
+
+              let options = {
+                quality: 80,
+                destinationType: Camera.DestinationType.DATA_URL,
+                sourceType: Camera.PictureSourceType.PHOTOLIBRARY,
+                allowEdit: true,
+                encodingType: Camera.EncodingType.JPEG,
+                saveToPhotoAlbum: false,
+                correctOrientation: true
+              };
+
+              navigator.camera.getPicture((imageData) => {
+                this.ds.post('core/api/v2/file/upload-base64', {
+                  image: "data:image/jpeg;base64," + imageData
+                })
+                  .subscribe(data => {
+                    loading.dismiss();
+                    if(!data.error) {
+                      this.addForm.image_path = data.result;
+                    } else {
+                      let alert = this.alert.create({
+                        title: 'Ошибка!',
+                        subTitle: data.error,
+                        buttons: ['OK']
+                      });
+
+                      alert.present(alert);
+                    }
+                  });
+              }, (error) => {
+                loading.dismiss();
+              }, options);
+            }
+          },{
+            text: 'Отмена',
+            role: 'cancel',
+            handler: () => {
+              this.disableAttach = false;
+            }
+          }
+        ]
+      });
+      actionSheet.present(actionSheet);
+    }
+  }
+
+  close() {
+    this.viewCtrl.dismiss({form: this.addForm});
+  }
+}
 
 @Component({
   template: `
     <ion-list radio-group class="popover-page">
       <ion-item>
         <ion-label>Дата</ion-label>
-        <ion-datetime displayFormat="YYYY-MM-DD" [(ngModel)]="today" (ngModelChange)="selectDate($event)"></ion-datetime>
+        <ion-datetime displayFormat="YYYY-MM-DD" [(ngModel)]="today"  (ngModelChange)="selectDate($event)"></ion-datetime>
+      </ion-item>
+
+      <ion-item tappable (click)="add()">
+        <ion-label>Добавить цель</ion-label>
+      </ion-item>
+
+      <ion-item tappable (click)="toggleEdit()">
+        <ion-label>Мои цели</ion-label>
       </ion-item>
     </ion-list>
   `,
@@ -25,7 +295,9 @@ class PopoverPage {
 
   constructor(
     private navParams: NavParams,
-    private viewCtrl: ViewController
+    private viewCtrl: ViewController,
+    public events: Events,
+    private alert: AlertController
   ) {
 
   }
@@ -37,7 +309,22 @@ class PopoverPage {
     }
   }
 
+  add() {
+    this.viewCtrl.dismiss();
+
+    this.events.publish('goals:add', {});
+    //this.viewCtrl.dismiss();
+  }
+
+  toggleEdit() {
+    this.viewCtrl.dismiss();
+
+    this.events.publish('goals:editMode', {});
+  }
+
   selectDate($event) {
+    console.log(this.today);
+
     this.callback(this.today);
     this.viewCtrl.dismiss();
   }
@@ -56,6 +343,9 @@ export class GoalsScreen {
   disableSend: any;
   progress: any;
   photos: any;
+  editMode: any;
+  targetList: any;
+  disableSave: any;
   @ViewChild(Content) content: Content;
   private app: App = null;
 
@@ -63,11 +353,18 @@ export class GoalsScreen {
     private ds: DataService,
     private platform: Platform,
     private nav: Nav,
-    app: App
+    app: App,
+    public events: Events,
+    private alert: AlertController,
+    private loading: LoadingController,
+    private actionSheet: ActionSheetController,
+    private popover: PopoverController
   ) {
     this.today = moment(new Date().setTime(new Date().getTime() - (3*60*60*1000))).format('YYYY-MM-DD');
     this.disableSend = false;
     this.photos = {0: []};
+    this.editMode = false;
+    this.disableSave = false;
     this.expandedGoal = [
       {
         visible: true
@@ -77,6 +374,22 @@ export class GoalsScreen {
     this.app = app;
 
     this.progress = 0;
+
+    this.targetList = [];
+
+    this.events.subscribe('goals:editMode', (data) => {
+      this.editMode = !this.editMode;
+      this.getTargets();
+    });
+
+    this.events.subscribe('goals:add', (data) => {
+      this.addGoal();
+    });
+
+    this.events.subscribe('goals:update', (data) => {
+      this.getTargets();
+      this.getGoals(this.today);
+    });
 
     this.dayStatus = {
       color:'#EAEBEC',
@@ -150,7 +463,7 @@ export class GoalsScreen {
   }
 
   showPopover(ev) {
-    let popover = Popover.create(PopoverPage, {
+    let popover = this.popover.create(PopoverPage, {
       today: this.today,
       cb: (data) => {
         this.today = data;
@@ -159,7 +472,7 @@ export class GoalsScreen {
       }
     }, {enableBackdropDismiss: true});
 
-    this.nav.present(popover, { ev: ev });
+    popover.present({ ev: ev });
   }
 
   updateDayStatus() {
@@ -222,20 +535,22 @@ export class GoalsScreen {
           }
 
           this.calcProgress();
+
+          this.updateDayStatus();
         } else {
-          let alert = Alert.create({
+          let alert = this.alert.create({
             title: 'Ошибка!',
             subTitle: data.error,
             buttons: ['OK']
           });
 
-          this.nav.present(alert);
+          alert.present(alert);
         }
       });
   }
 
   photosAction(target, index) {
-    let actionSheet = ActionSheet.create({
+    let actionSheet = this.actionSheet.create({
       buttons: [
         {
           text: 'Показать',
@@ -255,19 +570,37 @@ export class GoalsScreen {
       ]
     });
 
-    this.nav.present(actionSheet);
+    actionSheet.present(actionSheet);
+  }
+
+  getTargets() {
+    //core/api/v2/target/get
+    this.ds.get('core/api/v2/target/get', {})
+      .subscribe(data => {
+        if(!data.error) {
+          this.targetList = data.result;
+        } else {
+          let alert = this.alert.create({
+            title: 'Ошибка!',
+            subTitle: data.error,
+            buttons: ['OK']
+          });
+
+          alert.present(alert);
+        }
+      });
   }
 
   attachImages(index) {
-    let actionSheet = ActionSheet.create({
+    let actionSheet = this.actionSheet.create({
       title: 'Загрузить фотографию',
       buttons: [
         {
           text: 'Камера',
           handler: () => {
-            let loading = Loading.create();
+            let loading = this.loading.create();
 
-            this.nav.present(loading);
+            loading.present(loading);
 
             let options = {
               quality: 80,
@@ -290,13 +623,13 @@ export class GoalsScreen {
                   if(!data.error) {
                     this.photos[index].push(data.result);
                   } else {
-                    let alert = Alert.create({
+                    let alert = this.alert.create({
                       title: 'Ошибка!',
                       subTitle: data.error,
                       buttons: ['OK']
                     });
 
-                    this.nav.present(alert);
+                    alert.present(alert);
                   }
                 });
             }, (error) => {
@@ -306,9 +639,9 @@ export class GoalsScreen {
         },{
           text: 'Галерея',
           handler: () => {
-            let loading = Loading.create();
+            let loading = this.loading.create();
 
-            this.nav.present(loading);
+            loading.present(loading);
 
             let options = {
               quality: 80,
@@ -329,13 +662,13 @@ export class GoalsScreen {
                   if(!data.error) {
                     this.photos[index].push(data.result);
                   } else {
-                    let alert = Alert.create({
+                    let alert = this.alert.create({
                       title: 'Ошибка!',
                       subTitle: data.error,
                       buttons: ['OK']
                     });
 
-                    this.nav.present(alert);
+                    alert.present(alert);
                   }
                 });
             }, (error) => {
@@ -350,39 +683,88 @@ export class GoalsScreen {
         }
       ]
     });
-    this.nav.present(actionSheet);
+    actionSheet.present(actionSheet);
   }
 
   saveReport() {
-    this.targets.reply.reply.images = this.photos[0] || [];
-    console.log(JSON.stringify(this.photos));
+    if(!this.disableSave) {
+      this.disableSave = true;
+      this.targets.reply.reply.images = this.photos[0] || [];
+      console.log(JSON.stringify(this.photos));
 
-    for (var item in this.targets.target_reports.target_reports) {
-      this.targets.target_reports.target_reports[item].images = this.photos[parseInt(item)+1];
+      for (var item in this.targets.target_reports.target_reports) {
+        this.targets.target_reports.target_reports[item].images = this.photos[parseInt(item)+1];
+      }
+      this.ds.post('core/api/v2/target-reports/update-all', this.targets)
+        .subscribe(data => {
+          if(!data.error) {
+            let alert = this.alert.create({
+              title: 'Отчет был сохранен!',
+              buttons: ['OK']
+            });
+
+            alert.present(alert);
+
+            this.disableSave = false;
+          } else {
+            let alert = this.alert.create({
+              title: 'Ошибка!',
+              subTitle: data.error,
+              buttons: ['OK']
+            });
+
+            alert.present(alert);
+
+            this.disableSave = false;
+          }
+        });
     }
-    this.ds.post('core/api/v2/target-reports/update-all', this.targets)
-      .subscribe(data => {
-        if(!data.error) {
-          let alert = Alert.create({
-            title: 'Отчет был сохранен!',
-            buttons: ['OK']
-          });
+  }
 
-          this.nav.present(alert);
-        } else {
-          let alert = Alert.create({
-            title: 'Ошибка!',
-            subTitle: data.error,
-            buttons: ['OK']
-          });
+  addGoal() {
+    /*let modal = Modal.create(MyModal, {});
 
-          this.nav.present(alert);
+    modal.onDismiss((data: any[]) => {
+      if (data) {
+        this.getGoals(this.today);
+      }
+    });
+
+    this.nav.present(modal);*/
+
+    this.nav.push(MyModal);
+  }
+
+  editGoal(goal) {
+    console.log(JSON.stringify(goal));
+    let now = new Date();
+    let date = moment(goal.created_at);
+    let diff = (Math.ceil((now.getTime() - date.valueOf()) / (1000 * 3600 * 24)));
+    if(diff < 7) {
+      /*let modal = Modal.create(MyModal, {goal: goal});
+
+      modal.onDismiss((data: any[]) => {
+        if (data) {
+          this.getGoals(this.today);
+          this.getTargets();
         }
       });
+
+      this.nav.present(modal);*/
+      this.nav.push(MyModal, {goal: goal});
+    } else {
+      let alert = this.alert.create({
+        title: 'Упс...',
+        subTitle: 'Время редактирования цели истекло!',
+        buttons: ['OK']
+      });
+
+      alert.present(alert);
+    }
   }
 
   publishReport() {
-    let confirm = Alert.create({
+    let confirm = this.alert.create({
       title: 'Отправить отчет?',
       message: 'После публикации отчет нельзя будет изменить!',
       buttons: [
@@ -398,20 +780,21 @@ export class GoalsScreen {
            this.ds.post('core/api/v2/target-reports/publish', this.targets)
              .subscribe(data => {
                if(!data.error) {
-                 let alert = Alert.create({
+                 LocalNotifications.cancel(1);
+                 let alert = this.alert.create({
                    title: 'Отчет опубликован!',
                    buttons: ['OK']
                  });
 
-                 this.nav.present(alert);
+                 alert.present(alert);
                } else {
-                 let alert = Alert.create({
+                 let alert = this.alert.create({
                    title: 'Ошибка!',
                    subTitle: data.error,
                    buttons: ['OK']
                  });
 
-                 this.nav.present(alert);
+                 alert.present(alert);
                }
              });
          }
@@ -419,7 +802,7 @@ export class GoalsScreen {
       ]
     });
 
-    this.nav.present(confirm);
+    confirm.present(confirm);
   }
 
   expandGoal(index) {

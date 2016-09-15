@@ -1,6 +1,7 @@
 import {Component, ViewChild} from '@angular/core';
-import {Slides, Nav} from 'ionic-angular';
+import {Slides, MenuController, Nav} from 'ionic-angular';
 import {LoginScreen} from './login';
+import {SignupScreen} from './signup';
 
 
 @Component({
@@ -12,13 +13,15 @@ export class StartScreen {
     loop: true
   };
 
-  constructor(private nav: Nav) {
-
+  constructor(private nav: Nav, private menu: MenuController) {
+    this.menu.enable(false);
   }
 
-  openPage(page) {
-    // navigate to the new page if it is not the current page
-    //console.log(LoginScreen);
+  login() {
     this.nav.push(LoginScreen);
+  }
+
+  signup() {
+    this.nav.push(SignupScreen);
   }
 }

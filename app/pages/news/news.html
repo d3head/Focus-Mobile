@@ -29,16 +29,18 @@
 
   <div [ngSwitch]="displayMode">
     <div *ngSwitchCase="'0'">
-      <div *ngIf="news.data">
+      <div *ngIf="news && news.data && news.data.length > 0">
+
+
         <div *ngFor="let item of news.data; let i = index;">
           <ion-card full-width>
             <ion-item tappable (click)="openProfile(item.user_id)">
               <ion-avatar item-left>
-                <img *ngIf="item.user.profile.avatar" src="http://api.gofocus.ru/img/170/{{item.user.profile.avatar}}">
-                <img *ngIf="!item.user.profile.avatar" src="images/No-Image-Icon_medium.png">
+                <img *ngIf="item.user_profile.avatar" src="http://dev.gofocus.ru/img/170/{{item.user_profile.avatar}}">
+                <img *ngIf="!item.user_profile.avatar" src="images/No-Image-Icon_medium.png">
               </ion-avatar>
-              <h2>{{item.user.profile.name}} {{item.user.profile.soname}}</h2>
-              <p>{{item.created_at | amTimeAgo}}</p>
+              <h2>{{item.user_profile.name}} {{item.user_profile.soname}}</h2>
+              <p>{{item.date | amTimeAgo}}</p>
             </ion-item>
 
             <ion-segment padding [(ngModel)]="postMode[i]" dark post-mode>
@@ -67,15 +69,15 @@
                 <div class="slider" *ngIf="images">
                   <div *ngFor="let img of images[i]; let index = index;">
                     <div *ngIf="index === 0" class="slider-item first">
-                      <img src="http://api.gofocus.ru/img-full/{{img}}">
+                      <ion-img src="http://dev.gofocus.ru/img-full/{{img}}"></ion-img>
                     </div>
                     <div *ngIf="index !== 0" class="slider-item">
-                      <img src="http://api.gofocus.ru/img-full/{{img}}">
+                      <ion-img src="http://dev.gofocus.ru/img-full/{{img}}"></ion-img>
                     </div>
                   </div>
                 </div>
 
-                <ion-card-content *ngIf="item.post_state.is_dead_post">
+                <ion-card-content *ngIf="item.type == 1">
                   <ion-card-title>
                     Игрок потерял фокус
                   </ion-card-title>
@@ -107,10 +109,10 @@
                   <ion-list>
                     <div *ngFor="let routine of item.routines; let rid = index;">
                       <ion-item *ngIf="routine.done">
-                        <h2><ion-badge [style.background-color]="routine.routine[0].color">+1</ion-badge>{{routine.routine[0].name}}</h2>
+                        <h2><ion-badge [style.background-color]="routine.routine.color">+1</ion-badge>{{routine.routine.name}}</h2>
 
                         <ion-note item-right>
-                          {{ routine.routine[0].done_routine_reports.length }} из {{ routine.routine[0].count }}
+                          {{ routine.routine.done_routine_reports.length }} из {{ routine.routine.count }}
                         </ion-note>
                       </ion-item>
                     </div>
@@ -123,18 +125,18 @@
               <ion-col>
                 <button dark clear small (click)="likePost(item)">
                   <ion-icon name="heart" [ngClass]="{'liked': item.user_liked}"></ion-icon>
-                  <div>{{item.likes.length || '0'}}</div>
+                  <div>{{item.likes || '0'}}</div>
                 </button>
               </ion-col>
 
-              <ion-col text-center *ngIf="!item.post_state.is_dead_post">
+              <ion-col text-center *ngIf="item.type != 1">
                 <button dark clear small (click)="openPost(item, true)">
                   <ion-icon name="text"></ion-icon>
                   <div>{{item.comments_count}}</div>
                 </button>
               </ion-col>
 
-              <ion-col right text-right *ngIf="!item.post_state.is_dead_post">
+              <ion-col right text-right *ngIf="item.type != 1">
                 <button dark clear small (click)="openPost(item, false)">
                   <ion-icon name="arrow-forward"></ion-icon>
                 </button>
@@ -143,24 +145,34 @@
 
           </ion-card>
         </div>
+
+        <ion-infinite-scroll *ngIf="news.page < (news.total / news.per_page)" (ionInfinite)="loadMore(news.page + 1, $event)">
+         <ion-infinite-scroll-content></ion-infinite-scroll-content>
+       </ion-infinite-scroll>
       </div>
 
-      <div *ngIf="!news.data" padding empty-msg>
+      <div text-center padding *ngIf="!news.data">
+        <ion-spinner></ion-spinner>
+      </div>
+
+      <div *ngIf="news.data && news.data.length < 1" padding empty-msg>
         Новостей за эту дату нет.
       </div>
     </div>
 
     <div *ngSwitchCase="'1'">
-      <div *ngIf="news.data">
+      <div *ngIf="news && news.data && news.data.length > 0">
+
+
         <div *ngFor="let item of news.data; let i = index;">
           <ion-card full-width>
             <ion-item tappable (click)="openProfile(item.user_id)">
               <ion-avatar item-left>
-                <img *ngIf="item.user.profile.avatar" src="http://api.gofocus.ru/img/170/{{item.user.profile.avatar}}">
-                <img *ngIf="!item.user.profile.avatar" src="images/No-Image-Icon_medium.png">
+                <img *ngIf="item.user_profile.avatar" src="http://dev.gofocus.ru/img/170/{{item.user_profile.avatar}}">
+                <img *ngIf="!item.user_profile.avatar" src="images/No-Image-Icon_medium.png">
               </ion-avatar>
-              <h2>{{item.user.profile.name}} {{item.user.profile.soname}}</h2>
-              <p>{{item.created_at | amTimeAgo}}</p>
+              <h2>{{item.user_profile.name}} {{item.user_profile.soname}}</h2>
+              <p>{{item.date | amTimeAgo}}</p>
             </ion-item>
 
             <ion-segment padding [(ngModel)]="postMode[i]" dark post-mode>
@@ -189,15 +201,15 @@
                 <div class="slider" *ngIf="images">
                   <div *ngFor="let img of images[i]; let index = index;">
                     <div *ngIf="index === 0" class="slider-item first">
-                      <img src="http://api.gofocus.ru/img-full/{{img}}">
+                      <ion-img src="http://dev.gofocus.ru/img-full/{{img}}"></ion-img>
                     </div>
                     <div *ngIf="index !== 0" class="slider-item">
-                      <img src="http://api.gofocus.ru/img-full/{{img}}">
+                      <ion-img src="http://dev.gofocus.ru/img-full/{{img}}"></ion-img>
                     </div>
                   </div>
                 </div>
 
-                <ion-card-content *ngIf="item.post_state.is_dead_post">
+                <ion-card-content *ngIf="item.type == 1">
                   <ion-card-title>
                     Игрок потерял фокус
                   </ion-card-title>
@@ -223,24 +235,40 @@
                   </div>
                 </ion-card-content>
               </div>
+
+              <div *ngSwitchCase="'2'">
+                <ion-card-content>
+                  <ion-list>
+                    <div *ngFor="let routine of item.routines; let rid = index;">
+                      <ion-item *ngIf="routine.done">
+                        <h2><ion-badge [style.background-color]="routine.routine.color">+1</ion-badge>{{routine.routine.name}}</h2>
+
+                        <ion-note item-right>
+                          {{ routine.routine.done_routine_reports.length }} из {{ routine.routine.count }}
+                        </ion-note>
+                      </ion-item>
+                    </div>
+                  </ion-list>
+                </ion-card-content>
+              </div>
             </div>
 
             <ion-row>
               <ion-col>
                 <button dark clear small (click)="likePost(item)">
                   <ion-icon name="heart" [ngClass]="{'liked': item.user_liked}"></ion-icon>
-                  <div>{{item.likes.length || '0'}}</div>
+                  <div>{{item.likes || '0'}}</div>
                 </button>
               </ion-col>
 
-              <ion-col text-center *ngIf="!item.post_state.is_dead_post">
+              <ion-col text-center *ngIf="item.type != 1">
                 <button dark clear small (click)="openPost(item, true)">
                   <ion-icon name="text"></ion-icon>
                   <div>{{item.comments_count}}</div>
                 </button>
               </ion-col>
 
-              <ion-col right text-right *ngIf="!item.post_state.is_dead_post">
+              <ion-col right text-right *ngIf="item.type != 1">
                 <button dark clear small (click)="openPost(item, false)">
                   <ion-icon name="arrow-forward"></ion-icon>
                 </button>
@@ -249,9 +277,17 @@
 
           </ion-card>
         </div>
+
+        <ion-infinite-scroll *ngIf="news.page < (news.total / news.per_page)" (ionInfinite)="loadMore(news.page + 1, $event)">
+         <ion-infinite-scroll-content></ion-infinite-scroll-content>
+       </ion-infinite-scroll>
       </div>
 
-      <div *ngIf="!news.data" padding empty-msg>
+      <div text-center padding *ngIf="!news.data">
+        <ion-spinner></ion-spinner>
+      </div>
+
+      <div *ngIf="news.data && news.data.length < 1" padding empty-msg>
         Новостей за эту дату нет.
       </div>
     </div>

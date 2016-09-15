@@ -18,55 +18,100 @@
 </button>
 
 <ion-content>
+  <div text-center padding *ngIf="!routines">
+    <ion-spinner></ion-spinner>
+  </div>
+
   <ion-list *ngIf="routines">
     <ion-list-header>
-      Мои привычки
+      Привычки на сегодня
     </ion-list-header>
 
-    <div *ngFor="let item of routines.routine_reports">
+    <div *ngFor="let item of routines.routine_reports | todayRoutines">
       <ion-item-sliding *ngIf="!item.done" #itemSliding>
-          <ion-item-options side="left" (ionSwipe)="updateRoutine(item, itemSliding)">
-            <button secondary expandable (click)="updateRoutine(item, itemSliding)">
+          <ion-item-options *ngIf="!editMode" side="left" (ionSwipe)="updateRoutine(item, itemSliding)">
+            <button favorite expandable (click)="updateRoutine(item, itemSliding)">
               <ion-icon name="checkmark"></ion-icon>
             </button>
           </ion-item-options>
 
-          <ion-item [style.border-left-color]="item.routine[0].color">
-            <h2>{{item.routine[0].name}}</h2>
+          <ion-item [style.border-left-color]="item.routine.color">
+            <h2 tappable (click)="editRoutine(item.routine)">{{item.routine.name}}</h2>
 
-            <ion-note item-right>
-              {{ item.routine[0].countdone }} из {{ item.routine[0].count }}, {{ item.routine[0].percent }}%
+            <ion-note item-right *ngIf="!editMode">
+              <!--{{ item.routine.countdone }} из {{ item.routine.count }}, {{ item.routine.percent }}%-->
+              {{ item.routine.done_routine_reports }} из {{ item.routine.count }}
             </ion-note>
+
+            <button item-right danger tappable *ngIf="editMode" (click)="deleteRoutine(item)">Удалить</button>
           </ion-item>
       </ion-item-sliding>
     </div>
 
-    <div text-center padding *ngIf="!not_done_routines">
+    <div text-center padding *ngIf="(routines.routine_reports|todayRoutines).length == 0">
       Молодец!<br> Все привычки на сегодня выполнены.
     </div>
 
-    <div *ngIf="done_routines">
-      <ion-list-header>
-        Завершенные привычки
-      </ion-list-header>
+    <ion-list-header>
+      Остальные привычки
+    </ion-list-header>
 
-      <div *ngFor="let item of routines.routine_reports">
-        <ion-item-sliding *ngIf="item.done" #itemSliding green-bg>
-            <ion-item-options side="left" (ionSwipe)="updateRoutine(item, itemSliding)">
-              <button secondary expandable (click)="updateRoutine(item, itemSliding)">
-                <ion-icon name="checkmark"></ion-icon>
-              </button>
-            </ion-item-options>
+    <div *ngFor="let item of routines.routine_reports | anotherRoutines">
+      <ion-item-sliding *ngIf="!item.done" #itemSliding>
+          <ion-item-options *ngIf="!editMode" side="left" (ionSwipe)="updateRoutine(item, itemSliding)">
+            <button favorite expandable (click)="updateRoutine(item, itemSliding)">
+              <ion-icon name="checkmark"></ion-icon>
+            </button>
+          </ion-item-options>
 
-            <ion-item [style.border-left-color]="item.routine[0].color">
-              <h2>{{item.routine[0].name}}</h2>
+          <ion-item [style.border-left-color]="item.routine.color">
+            <h2 tappable (click)="editRoutine(item.routine)">{{item.routine.name}}</h2>
 
-              <ion-note item-right>
-                {{ item.routine[0].countdone }} из {{ item.routine[0].count }}, {{ item.routine[0].percent }}%
-              </ion-note>
-            </ion-item>
-        </ion-item-sliding>
-      </div>
+            <ion-note item-right *ngIf="!editMode">
+              <!--{{ item.routine.countdone }} из {{ item.routine.count }}, {{ item.routine.percent }}%-->
+              {{ item.routine.done_routine_reports }} из {{ item.routine.count }}
+            </ion-note>
+
+            <button item-right danger tappable *ngIf="editMode" (click)="deleteRoutine(item)">Удалить</button>
+          </ion-item>
+      </ion-item-sliding>
+    </div>
+
+    <div text-center padding *ngIf="(routines.routine_reports|anotherRoutines).length == 0">
+      Остальных привычек нет.
+    </div>
+
+    <ion-list-header>
+      Завершенные привычки
+    </ion-list-header>
+
+    <div *ngFor="let item of routines.routine_reports | doneRoutines">
+      <ion-item-sliding *ngIf="item.done" #itemSliding green-bg>
+          <ion-item-options *ngIf="!editMode" side="left" (ionSwipe)="updateRoutine(item, itemSliding)">
+            <button favorite expandable (click)="updateRoutine(item, itemSliding)" orange>
+              <ion-icon name="undo"></ion-icon>
+            </button>
+          </ion-item-options>
+
+          <ion-item [style.border-left-color]="item.routine.color">
+            <h2 tappable (click)="editRoutine(item.routine)">{{item.routine.name}}</h2>
+
+            <ion-note item-right *ngIf="!editMode">
+              <!--{{ item.routine[0].countdone }} из {{ item.routine[0].count }}, {{ item.routine[0].percent }}%-->
+              {{ item.routine.done_routine_reports }} из {{ item.routine.count }}
+            </ion-note>
+
+            <button item-right danger tappable *ngIf="editMode" (click)="deleteRoutine(item)">Удалить</button>
+          </ion-item>
+      </ion-item-sliding>
+    </div>
+
+    <div text-center padding *ngIf="(routines.routine_reports|doneRoutines).length == 0">
+      Вы не завершили ни одной привычки.
+    </div>
+
+    <div *ngIf="editMode" text-center padding>
+      <button primary (click)="editMode = !editMode">Готово</button>
     </div>
   </ion-list>
 </ion-content>

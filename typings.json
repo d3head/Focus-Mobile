@@ -4,6 +4,11 @@
   "globalDependencies": {
     "cordova": "registry:dt/cordova#0.0.0+20160607055823",
     "cordova/plugins/camera": "registry:dt/cordova/plugins/camera#0.0.0+20160316155526",
-    "es6-shim": "registry:dt/es6-shim#0.31.2+20160602141504"
+    "es6-shim": "registry:dt/es6-shim#0.31.2+20160602141504",
+    "moment-timezone": "github:DefinitelyTyped/DefinitelyTyped/moment-timezone/moment-timezone.d.ts#f8a90040348e83926f44e690b209769c4f88b961",
+    "phonegap-plugin-push": "registry:dt/phonegap-plugin-push#0.0.0+20160501153936"
+  },
+  "ambientDependencies": {
+    "moment-timezone": "github:DefinitelyTyped/DefinitelyTyped/moment-timezone/moment-timezone.d.ts#f8a90040348e83926f44e690b209769c4f88b961"
   }
 }

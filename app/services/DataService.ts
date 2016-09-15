@@ -37,9 +37,6 @@ export class DataService {
 
       headers.append('X-Requested-With', 'XMLHttpRequest');
     }
-
-    //headers.append('Content-Type', 'application/x-www-form-urlencoded');
-    //headers.append('Parameter', params);
   }
 
   jsonToQueryString(json) {
@@ -59,8 +56,22 @@ export class DataService {
     }
 
     //return this.http.get(`${API.API_ENDPOINT}/${url}`, options).map(res => res.json());
-    //return this.http.get('http://api.gofocus.ru/' + url, options).map(res => res.json());
-    return this.http.get('/api/' + url, options).map(res => res.json());
+    return this.http.get('http://dev.gofocus.ru/' + url, options).map(res => res.json());
+    //return this.http.get('/api/' + url, options).map(res => res.json());
+  }
+
+  getGo(url, data) {
+    let headers = new Headers();
+    this.createAuthorizationHeader(headers, data, false);
+
+    let options = {
+      headers: headers,
+      search: this.jsonToQueryString(data)
+    }
+
+    //return this.http.get(`${API.API_ENDPOINT}/${url}`, options).map(res => res.json());
+    return this.http.get('http://dev.gofocus.ru:8888/' + url, options).map(res => res.json());
+    //return this.http.get('/api/' + url, options).map(res => res.json());
   }
 
   getClear(url, data) {
@@ -87,8 +98,8 @@ export class DataService {
     }
 
     //return this.http.post(`${API.API_ENDPOINT}/${url}`, data, options).map(res => res.json());
-    //return this.http.post('http://api.gofocus.ru/' + url, data, options).map(res => res.json());
-    return this.http.post('/api/' + url, data, options).map(res => res.json());
+    return this.http.post('http://dev.gofocus.ru/' + url, data, options).map(res => res.json());
+    //return this.http.post('/api/' + url, data, options).map(res => res.json());
   }
 
   /* Auth methods */

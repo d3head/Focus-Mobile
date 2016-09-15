@@ -1,47 +1,56 @@
-import {Component, ViewChild, Input, Output, EventEmitter, enableProdMode} from '@angular/core';
-import {ionicBootstrap, Platform, MenuController, Nav, Toast, Events} from 'ionic-angular';
-import {StatusBar, Network} from 'ionic-native';
+import {Component, ViewChild, Input, Output, Inject, EventEmitter, enableProdMode} from '@angular/core';
+import {ionicBootstrap, Platform, AlertController, MenuController, Nav, Events, Storage, LocalStorage, ToastController} from 'ionic-angular';
+import {StatusBar, Keyboard, Network, LocalNotifications, Push, OneSignal, Splashscreen} from 'ionic-native';
 import {HelloIonicPage} from './pages/hello-ionic/hello-ionic';
 import {ListPage} from './pages/list/list';
 import {StartScreen} from './pages/start-screen/start-screen';
 import {AuthService} from './services/auth-service';
 import {SyncEvent} from 'ts-events';
-
-/* Pages */
+import {DataService} from './services/DataService';
+import * as moment from 'moment';
+import * as tz from 'moment-timezone';
+import 'moment/locale/ru';
 import {TasksScreen} from './pages/tasks/tasks';
 import {GoalsScreen} from './pages/goals/goals';
 import {RoutinesScreen} from './pages/routines/routines';
 import {NewsScreen} from './pages/news/news';
 import {SettingsScreen} from './pages/settings/settings';
 import {UserScreen} from './pages/user/user';
-
-/// <reference path="cordova.d.ts" />
-
-let userEvent = new SyncEvent();
-
+import {PlayFocusScreen} from './pages/play/play';
+import {DashboardScreen} from './pages/dashboard/dashboard';
 enableProdMode();
 
 @Component({
   templateUrl: 'build/app.html',
-  providers: [AuthService]
+  providers: [AuthService, DataService]
 })
 class MyApp {
   @ViewChild(Nav) nav: Nav;
   @Output() updateUser = new EventEmitter();
-  // make HelloIonicPage the root (or first) page
   //rootPage: any = (!AuthService.isAuthorized()) ? StartScreen : HelloIonicPage;
   rootPage: any = StartScreen;
   pages: Object;
   user: any;
+  local: any;
+  API_URL: any;
+  timerPanel: any;
+  isDebtComplete: any;
+  isDebtWarn: any;
+  until: boolean;
+  timer: any;
 
   constructor(
     private platform: Platform,
     private menu: MenuController,
     private AuthService: AuthService,
-    public events: Events
+    public events: Events,
+    private ds: DataService,
+    private alert: AlertController
+    //private Toast: ToastController
   ) {
+    //this.API_URL = API_URL;
     this.initializeApp();
-
+    this.local = new Storage(LocalStorage);
     // set our app's pages
     this.pages = {
       tasks: TasksScreen,
@@ -49,54 +58,214 @@ class MyApp {
       routines: RoutinesScreen,
       news: NewsScreen,
       settings: SettingsScreen,
-      user: UserScreen
+      user: UserScreen,
+      dashboard: DashboardScreen
     };
-
+    //console.log(moment(new Date()).tz.names());
     this.user = [];
+    this.timerPanel = null;
+    this.timer = null;
+    this.until = false;
 
     this.events.subscribe('user:login', (data) => {
-      // userEventData is an array of parameters, so grab our first and only arg
       this.user = data[0].user[0];
+      this.getTimerPanel();
+    });
+
+    this.events.subscribe('user:update', (data) => {
+      this.updateUserInfo();
     });
 
     this.AuthService.isAuthorized().then(data => {
-        if(data) {
-          this.nav.setRoot(TasksScreen);
-          //this.nav.setRoot(GoalsScreen);
+      if(data) {
+        this.AuthService.getUser().then(data => {
+          this.user = JSON.parse(data);
+          setTimeout(() => {
+            console.log('debug Auth:');
+            if(this.user.purchased_billing_rate[0].activated) {
+              this.getTimerPanel();
+              this.nav.setRoot(TasksScreen);
+            } else {
+              this.nav.setRoot(PlayFocusScreen, {user: this.user});
+            }
+          }, 1000);
 
-          this.AuthService.getUser().then(data => {
-            this.user = JSON.parse(data);
-            console.log(this.user);
-          });
-        } else {
-        this.menu.enable(false);
+          window["plugins"].OneSignal.sendTag("id", this.user.id);
+          window["plugins"].OneSignal.registerForPushNotifications();
+          window["plugins"].OneSignal.setSubscription(true);
+
+          this.updateUserInfo();
+        });
+      } else {
+        Splashscreen.hide();
       }
     });
 
     this.AuthService.updateUserInfo.subscribe(user => this.user = user);
   }
 
+  dailyTimer() {
+    //var dt = moment(new Date()).tz(vm.user.profile.timezone).format('YYYY/MM/DD HH:mm:ss ZZ')._d;
+    var hh = parseInt(moment(new Date()).format('HH'));
+    var mm = parseInt(moment(new Date()).format('mm'));
+    var ss = parseInt(moment(new Date()).format('ss'));
+
+    var secEnd = 10800,
+        serDay = 24 * 3600;
+
+    var curSec = (hh * 3600) + (mm * 60) + (ss),
+        diff = secEnd - curSec;
+
+    if (diff < 0) {
+        diff = serDay + diff;
+    }
+
+    var hours = Math.floor(diff / 3600),
+        minutes = Math.floor(diff / 60) % 60,
+        seconds = Math.floor(diff) % 60;
+
+    if (hours < 10) hours = parseInt('0' + hours);
+    if (minutes < 10) minutes = parseInt('0' + minutes);
+    if (seconds < 10) seconds = parseInt('0' + seconds);
+
+    this.timer = hours + ':' + minutes + ':' + seconds;
+    this.until = (hours <= 3) ? true : false;
+  };
+
+  updateUserInfo() {
+    this.ds.get('core/api/v2/user/get-user-info', {})
+      .subscribe(data => {
+        if(!data.error) {
+          this.user = data.user[0];
+          this.local.set('user', JSON.stringify(data.user[0]));
+        } else {
+          let alert = this.alert.create({
+            title: 'Ошибка!',
+            subTitle: data.error,
+            buttons: ['OK']
+          });
+
+          alert.present(alert);
+        }
+      });
+  }
+
+  activateAccount() {
+    this.ds.post('core/api/v2/user/activate', {})
+      .subscribe(data => {
+        if(!data.error) {
+          let alert = this.alert.create({
+            title: 'Система активирована!',
+            buttons: [{
+              text: 'OK',
+              handler: () => {
+                this.updateUserInfo();
+              }
+            }]
+          });
+
+          alert.present(alert);
+        } else {
+          let alert = this.alert.create({
+            title: 'Ошибка!',
+            subTitle: data.error,
+            buttons: ['OK']
+          });
+
+          alert.present(alert);
+        }
+      });
+  }
+
+  getTimerPanel() {
+    ///core/api/v2/user/timer-panel
+    console.log('debug TimerPanel');
+    if(this.user.purchased_billing_rate[0].activated) {
+      setInterval(() => {
+        this.dailyTimer();
+      }, 1000);
+
+      console.log('getTimerPanel here');
+
+      this.ds.get('core/api/v2/user/timer-panel', {})
+        .subscribe(data => {
+          console.log('data:');
+          console.log(data);
+          if(!data.error) {
+            this.timerPanel = data.result;
+
+            console.log(this.timerPanel);
+
+            let sunday = function() {
+              var myDate = new Date();
+
+              if(myDate.getDay() == 6) {
+                return true;
+              } else {
+                return false;
+              }
+            };
+
+            this.isDebtComplete = function() {
+              if(this.timerPanel.checkers.not_done_tasks.count < 6) {
+                return true;
+              } else {
+                return false;
+              }
+            };
+
+            this.isDebtWarn = function() {
+              if(this.timerPanel.checkers.not_done_tasks.count < 6) {
+                return true;
+              } else {
+                if(sunday()) {
+                  return false;
+                } else {
+                  return true;
+                }
+              }
+            };
+          }
+        });
+    }
+  }
+
   initializeApp() {
     this.platform.ready().then(() => {
-      // Okay, so the platform is ready and our plugins are available.
-      // Here you can do any higher level native things you might need.
       StatusBar.styleDefault();
-      let disconnectSubscription = Network.onDisconnect().subscribe(() => {
-        let toast = Toast.create({
+      Keyboard.disableScroll(true);
+      console.log('App Init!');
+      var notificationOpenedCallback = function(jsonData) {
+        //console.log('didReceiveRemoteNotificationCallBack: ' + JSON.stringify(jsonData));
+      };
+
+      window["plugins"].OneSignal.init("41b03c5b-9b88-4415-9e06-804679cbbb27",
+                                     {googleProjectNumber: "", autoRegister: true},
+                                     notificationOpenedCallback);
+
+      window["plugins"].OneSignal.enableInAppAlertNotification(true);
+
+      window["plugins"].OneSignal.getTags(function(tags) {
+        console.log('Tags Received: ' + JSON.stringify(tags));
+      });
+
+      // Show notification when internet was disconnected
+      /*let disconnectSubscription = Network.onDisconnect().subscribe(() => {
+        let toast = this.Toast.create({
           message: 'Отсутсвует интернет-подключение',
           position: 'top'
         });
 
-        toast.onDismiss(() => {
+        toast.onDidDismiss(() => {
           console.log('Dismissed toast');
         });
 
-        this.nav.present(toast);
+        toast.present(toast);
 
         let connectSubscription = Network.onConnect().subscribe(() => {
           toast.dismiss();
         });
-      });
+      });*/
     });
   }
 
@@ -106,19 +275,11 @@ class MyApp {
     });
   }
 
-  openPage(page) {
-    // close the menu when clicking a link from the menu
+  openPage(page, data) {
     this.menu.close();
-    // navigate to the new page if it is not the current page
-    console.log(page);
-    this.nav.setRoot(this.pages[page]);
+    this.nav.setRoot(this.pages[page], data);
   }
 }
 ionicBootstrap(MyApp, [], {
   backButtonText: 'Назад'
-  /*iconMode: 'ios',
-  modalEnter: 'modal-slide-in',
-  modalLeave: 'modal-slide-out',
-  tabbarPlacement: 'bottom',
-  pageTransition: 'ios',*/
 });

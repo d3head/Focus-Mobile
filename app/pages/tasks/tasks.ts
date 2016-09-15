@@ -1,16 +1,14 @@
 import {Component, ViewChild, ElementRef} from '@angular/core';
-import {Slides, Nav, Popover, NavParams, MenuController, Alert, Modal, ViewController} from 'ionic-angular';
+import {Slides, Nav, LoadingController, PopoverController, NavParams, MenuController, AlertController, ModalController, ViewController} from 'ionic-angular';
+import {Splashscreen} from 'ionic-native';
 import * as moment from 'moment';
 import 'moment/locale/ru';
-
 import {DateFormatPipe} from 'angular2-moment';
-
 import {OrderBy} from '../../pipes/orderBy';
-
 import {DataService} from '../../services/DataService';
 
 @Component({
-  providers: [DataService],
+  providers: [DataService, Nav],
   template: `
   <ion-header>
     <ion-toolbar>
@@ -49,6 +47,12 @@ import {DataService} from '../../services/DataService';
         <ion-input type="text" placeholder="Содержание" [(ngModel)]="addForm.name"></ion-input>
       </ion-item>
 
+      <ion-item *ngIf="error.name">
+        <div class="warn">
+            Заголовок не может быть пустым!
+        </div>
+      </ion-item>
+
       <ion-item>
         <ion-label>Длительность</ion-label>
         <ion-datetime displayFormat="HH:mm" pickerFormat="HH mm" [(ngModel)]="addForm.estimate_time"></ion-datetime>
@@ -69,44 +73,78 @@ import {DataService} from '../../services/DataService';
 
     <ion-list>
       <ion-item>
+        <ion-label>Напоминать о задаче</ion-label>
+        <ion-toggle [(ngModel)]="addForm.remind"></ion-toggle>
+      </ion-item>
+
+      <ion-item *ngIf="addForm.remind">
+        <ion-label>Когда напомнить</ion-label>
+        <ion-datetime displayFormat="DD.MM.YYYY" [(ngModel)]="addForm.remind_date"></ion-datetime>
+      </ion-item>
+
+      <ion-item *ngIf="addForm.remind">
+        <ion-label>Во сколько напомнить</ion-label>
+        <ion-datetime displayFormat="HH:mm" [(ngModel)]="addForm.remind_time"></ion-datetime>
+      </ion-item>
+    </ion-list>
+
+    <ion-list>
+      <ion-item>
         <ion-label>Обязательная</ion-label>
         <ion-toggle [(ngModel)]="addForm.important"></ion-toggle>
       </ion-item>
 
     </ion-list>
 
-    <button full (click)="createTask()" *ngIf="!_navParams.data.task">
-      Добавить
+    <button full (click)="createTask()" *ngIf="!_navParams.data.task" [disabled]="disableCreate">
+      <ion-spinner *ngIf="disableCreate" name="dots"></ion-spinner>
+      <div *ngIf="!disableCreate">Добавить</div>
     </button>
 
-    <button full (click)="updateTask()" *ngIf="_navParams.data.task">
-      Сохранить
+    <button full (click)="updateTask()" *ngIf="_navParams.data.task" [disabled]="disableUpdate">
+    <ion-spinner *ngIf="disableUpdate" name="dots"></ion-spinner>
+    <div *ngIf="!disableUpdate">Сохранить</div>
     </button>
   </ion-content>`
 })
 class MyModal {
   addForm: any;
+  disableCreate: any;
+  disableUpdate: any;
+  public error = {
+    name: false
+  };
 
   constructor(
     private viewCtrl: ViewController,
     private ds: DataService,
     private nav: Nav,
     private menu: MenuController,
-    private _navParams: NavParams) {
-      /*Date.prototype.tryHours = function(h) {
-        this.setTime(this.getTime() - (h*60*60*1000));
-        return this;
-      }*/
+    private Alert: AlertController,
+    private _navParams: NavParams,
+    private loadingCtrl: LoadingController) {
       let estimate_time = new Date();
       estimate_time.setHours(0, 15);
+
+      this.disableCreate = false;
+      this.disableUpdate = false;
+
+      console.log(JSON.stringify(this.addForm));
 
       this.addForm = {
         estimate_date: moment(new Date()).format('YYYY-MM-DD'),
         estimate_time: moment(estimate_time).format('HH:mm'),
         backlog: false,
         name: '',
-        important: false
+        important: false,
+        remind: false,
+        remind_date: moment(new Date()).format('YYYY-MM-DD'),
+        remind_time: moment(new Date()).format('HH:mm')
       };
+
+      console.log(JSON.stringify(this.addForm));
+
+      //console.log(moment(moment(this.addForm.remind_date + ' ' + this.addForm.remind_time)).format('YYYY-MM-DD HH:mm'));
 
       if(this._navParams.data.task) {
         let hours: any = Math.round(this._navParams.data.task.estimate_time / 60);
@@ -117,59 +155,115 @@ class MyModal {
           estimate_time: hours + ':' + min,
           backlog: (this._navParams.data.task.estimate_date == null) ? true : false,
           name: this._navParams.data.task.name,
-          important: (this._navParams.data.task.type == 1) ? true : false
+          important: (this._navParams.data.task.type == 1) ? true : false,
+          remind: (this._navParams.data.task.remind_at == null) ? false : true,
+          remind_date: (this._navParams.data.task.remind_at) ? moment(this._navParams.data.task.remind_at).format('YYYY-MM-DD') : moment(new Date()).format('YYYY-MM-DD'),
+          remind_time: (this._navParams.data.task.remind_at) ? moment(this._navParams.data.task.remind_at).format('HH:mm') : moment(new Date()).format('HH:mm')
         };
       }
+
+      console.log(JSON.stringify(this.addForm));
       //this.today.tryHours(3);
     }
 
-  createTask() {
-    let form = {
-        name: this.addForm.name,
-        estimate_date: (!this.addForm.backlog) ? this.addForm.estimate_date : null,
-        estimate_time: parseInt(this.addForm.estimate_time.split(':')[0]) * 60 + parseInt(this.addForm.estimate_time.split(':')[1]),
-        type: (this.addForm.important) ? 1 : 2
-      };
+  validateForm() {
+    if(this.addForm.name.length < 1) {
+      this.error.name = true;
+    } else {
+      this.error.name = false;
+    }
 
-    this.ds.post('core/api/v2/task/create-one', form)
-      .subscribe(data => {
-        if(!data.error) {
-          this.viewCtrl.dismiss({form: form});
-        } else {
-          let alert = Alert.create({
-            title: 'Ошибка!',
-            subTitle: data.error,
-            buttons: ['OK']
-          });
-          this.viewCtrl.dismiss();
-          this.nav.present(alert);
-        }
+    if(this.error.name) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  createTask() {
+    if(!this.disableCreate) {
+      let loading = this.loadingCtrl.create({
+        content: 'Создание...'
       });
+
+      //loading.present();
+
+      this.disableCreate = true;
+
+      if(this.validateForm()) {
+        let form = {
+            name: this.addForm.name,
+            estimate_date: (!this.addForm.backlog) ? this.addForm.estimate_date : null,
+            estimate_time: parseInt(this.addForm.estimate_time.split(':')[0]) * 60 + parseInt(this.addForm.estimate_time.split(':')[1]),
+            type: (this.addForm.important) ? 1 : 2,
+            remind_at: (this.addForm.remind) ? moment.utc(this.addForm.remind_date + ' ' + this.addForm.remind_time) : null
+          };
+
+        this.ds.post('core/api/mobile/task/create-one', form)
+          .subscribe(data => {
+            this.disableCreate = false;
+            if(!data.error) {
+              this.viewCtrl.dismiss({form: form});
+              //loading.dismiss();
+            } else {
+              let alert = this.Alert.create({
+                title: 'Ошибка!',
+                subTitle: data.error,
+                buttons: ['OK']
+              });
+              this.viewCtrl.dismiss();
+              //loading.dismiss();
+              alert.present(alert);
+            }
+          });
+      } else {
+        //loading.dismiss();
+        this.disableCreate = false;
+      }
+    }
   }
 
   updateTask() {
-    let form = {
-        name: this.addForm.name,
-        estimate_date: (!this.addForm.backlog) ? this.addForm.estimate_date : null,
-        estimate_time: parseInt(this.addForm.estimate_time.split(':')[0]) * 60 + parseInt(this.addForm.estimate_time.split(':')[1]),
-        type: (this.addForm.important) ? 1 : 2,
-        id: this._navParams.data.task.id
-      };
-
-    this.ds.post('core/api/v2/task/update-one', form)
-      .subscribe(data => {
-        if(!data.error) {
-          this.viewCtrl.dismiss({form: form});
-        } else {
-          let alert = Alert.create({
-            title: 'Ошибка!',
-            subTitle: data.error,
-            buttons: ['OK']
-          });
-          this.viewCtrl.dismiss();
-          this.nav.present(alert);
-        }
+    if(!this.disableUpdate) {
+      let loading = this.loadingCtrl.create({
+        content: 'Сохранение...'
       });
+
+      //loading.present();
+
+      this.disableUpdate = true;
+
+      if(this.validateForm()) {
+        let form = {
+            name: this.addForm.name,
+            estimate_date: (!this.addForm.backlog) ? this.addForm.estimate_date : null,
+            estimate_time: parseInt(this.addForm.estimate_time.split(':')[0]) * 60 + parseInt(this.addForm.estimate_time.split(':')[1]),
+            type: (this.addForm.important) ? 1 : 2,
+            id: this._navParams.data.task.id,
+            remind_at: (this.addForm.remind) ? moment.utc(this.addForm.remind_date + ' ' + this.addForm.remind_time) : null
+          };
+
+        this.ds.post('core/api/mobile/task/update-one', form)
+          .subscribe(data => {
+            this.disableUpdate = false;
+            if(!data.error) {
+              this.viewCtrl.dismiss({form: form});
+              //loading.dismiss();
+            } else {
+              let alert = this.Alert.create({
+                title: 'Ошибка!',
+                subTitle: data.error,
+                buttons: ['OK']
+              });
+              this.viewCtrl.dismiss();
+              //loading.dismiss();
+              alert.present(alert);
+            }
+        });
+      } else {
+        this.disableUpdate = false;
+      }
+    }
   }
 
   close() {
@@ -216,7 +310,7 @@ class PopoverPage {
 
 @Component({
   templateUrl: 'build/pages/tasks/tasks.html',
-  providers: [DataService],
+  providers: [DataService, Nav],
   pipes: [OrderBy, DateFormatPipe]
 })
 export class TasksScreen {
@@ -232,14 +326,23 @@ export class TasksScreen {
   constructor(
     private nav: Nav,
     private ds: DataService,
-    private viewCtrl: ViewController
+    private viewCtrl: ViewController,
+    private Alert: AlertController,
+    private Popover: PopoverController,
+    private Modal: ModalController,
+    private menu: MenuController
   ) {
+    Splashscreen.hide();
     this.allTasks = {};
     this.today = moment(new Date().setTime(new Date().getTime() - (3*60*60*1000))).format('YYYY-MM-DD');
     this.trueToday = moment(new Date().setTime(new Date().getTime() - (3*60*60*1000))).format('YYYY-MM-DD');
     this.displayMode = '0';
     this.counters = [];
-    this.getTasks(this.today);
+    this.getTasks(this.today, null);
+
+    if(!this.menu.isEnabled()) {
+      this.menu.enable(true);
+    }
   }
 
   formatedTaskTime (minutes: number) {
@@ -254,7 +357,7 @@ export class TasksScreen {
   };
 
   doRefresh(refresher) {
-    this.getTasks(this.today);
+    this.getTasks(this.today, null);
 
     setTimeout(() => {
       console.log('Async operation has ended');
@@ -262,8 +365,8 @@ export class TasksScreen {
     }, 2000);
   }
 
-  getTasks(date) {
-    this.ds.get('core/api/v2/task/get-by-date', {
+  getTasks(date, refresher) {
+    this.ds.getGo('core/api/v2/task/get-by-date', {
       estimate_date: date
     })
       .subscribe(data => {
@@ -274,18 +377,20 @@ export class TasksScreen {
             this.allTasks.all_tasks[''] = {1: [], 2: []};
           }
 
-          console.log(this.allTasks.all_tasks);
-
           //this.dateKeys = this.keys(this.allTasks.all_tasks);
           this.countTasks();
+
+          if(refresher) {
+            refresher.complete();
+          }
         } else {
-          let alert = Alert.create({
+          let alert = this.Alert.create({
             title: 'Ошибка!',
             subTitle: data.error,
             buttons: ['OK']
           });
 
-          this.nav.present(alert);
+          alert.present(alert);
         }
       });
   }
@@ -344,25 +449,31 @@ export class TasksScreen {
     this.counters.optional_done = 0;
     this.counters.optional_not_done = 0;
     this.counters.optional_estimate = 0;
-    for(var i in this.allTasks.required_tasks) {
-        var item = this.allTasks.required_tasks[i];
-        if(item.done) {
-          this.counters.required_done++;
-        } else {
-          this.counters.required_estimate += parseInt(item.estimate_time);
-          this.counters.required_not_done++;
-        }
+    console.info('debug CountTasks:');
+    console.log(this.allTasks.required_tasks);
+    console.log(this.allTasks.optional_tasks);
+    if(this.allTasks.required_tasks) {
+      for(var i in this.allTasks.required_tasks) {
+          var item = this.allTasks.required_tasks[i];
+          if(item.done) {
+            this.counters.required_done++;
+          } else {
+            this.counters.required_estimate += parseInt(item.estimate_time);
+            this.counters.required_not_done++;
+          }
+      }
     }
 
-    for(var i in this.allTasks.optional_tasks) {
-        var item = this.allTasks.optional_tasks[i];
-        if(item.done) {
-          this.counters.optional_done++;
-        } else {
-          this.counters.optional_estimate += parseInt(item.estimate_time);
-          console.log(this.counters.optional_estimate);
-          this.counters.optional_not_done++;
-        }
+    if(this.allTasks.optional_tasks) {
+      for(var i in this.allTasks.optional_tasks) {
+          var item = this.allTasks.optional_tasks[i];
+          if(item.done) {
+            this.counters.optional_done++;
+          } else {
+            this.counters.optional_estimate += parseInt(item.estimate_time);
+            this.counters.optional_not_done++;
+          }
+      }
     }
   }
 
@@ -419,15 +530,15 @@ export class TasksScreen {
   }
 
   showPopover(ev) {
-    let popover = Popover.create(PopoverPage, {
+    let popover = this.Popover.create(PopoverPage, {
       today: this.today,
       cb: (data) => {
         this.today = data;
-        this.getTasks(this.today);
+        this.getTasks(this.today, null);
       }
     }, {enableBackdropDismiss: true});
 
-    this.nav.present(popover, { ev: ev });
+    popover.present({ ev: ev });
   }
 
   sendTomorrow(task) {
@@ -445,18 +556,18 @@ export class TasksScreen {
         task.$fromBacklog = true;
     }
 
-    this.ds.post('core/api/v2/task/update-one', task)
+    this.ds.post('core/api/mobile/task/update-one', task)
       .subscribe(data => {
         if(!data.error) {
-          this.getTasks(this.today);
+          this.getTasks(this.today, null);
         } else {
-          let alert = Alert.create({
+          let alert = this.Alert.create({
             title: 'Ошибка!',
             subTitle: data.error,
             buttons: ['OK']
           });
 
-          this.nav.present(alert);
+          alert.present(alert);
         }
       });
   }
@@ -469,52 +580,51 @@ export class TasksScreen {
       this.allTasks.done_tasks--;
     }
     slidingItem.close();
-    this.ds.post('core/api/v2/task/update-one', task)
+    this.ds.post('core/api/mobile/task/update-one', task)
       .subscribe(data => {
         if(!data.error) {
-          this.getTasks(this.today);
-          //this.countTasks();
+          this.getTasks(this.today, null);
         } else {
-          let alert = Alert.create({
+          let alert = this.Alert.create({
             title: 'Ошибка!',
             subTitle: data.error,
             buttons: ['OK']
           });
 
-          this.nav.present(alert);
+          alert.present(alert);
         }
       });
-    //core/api/v2/task/update-one
+    //core/api/mobile/task/update-one
   }
 
   removeTask(task) {
-    this.ds.post('core/api/v2/task/delete', task)
+    this.ds.post('core/api/mobile/task/delete', task)
       .subscribe(data => {
         if(!data.error) {
-          this.getTasks(this.today);
+          this.getTasks(this.today, null);
         } else {
-          let alert = Alert.create({
+          let alert = this.Alert.create({
             title: 'Ошибка!',
             subTitle: data.error,
             buttons: ['OK']
           });
 
-          this.nav.present(alert);
+          alert.present(alert);
         }
       });
-    //core/api/v2/task/update-one
+    //core/api/mobile/task/update-one
   }
 
   addTaskScreen() {
-    let modal = Modal.create(MyModal);
+    let modal = this.Modal.create(MyModal);
 
-    modal.onDismiss((data: any[]) => {
+    modal.onDidDismiss((data: any[]) => {
       if (data) {
-        this.getTasks(this.today);
+        this.getTasks(this.today, null);
       }
     });
 
-    this.nav.present(modal);
+    modal.present(modal);
   }
 
   ngDoCheck(changes) {
@@ -522,14 +632,14 @@ export class TasksScreen {
   }
 
   editTask(task) {
-    let modal = Modal.create(MyModal, {task: task});
+    let modal = this.Modal.create(MyModal, {task: task});
 
-    modal.onDismiss((data: any[]) => {
+    modal.onDidDismiss((data: any[]) => {
       if (data) {
-        this.getTasks(this.today);
+        this.getTasks(this.today, null);
       }
     });
 
-    this.nav.present(modal);
+    modal.present(modal);
   }
 }
